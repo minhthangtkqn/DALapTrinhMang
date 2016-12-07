@@ -6,6 +6,7 @@
 package daltm;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,44 +41,45 @@ public class Email_Login extends Application {
     /**
      * Elements in Login form
      */
-    GridPane loginPane = new GridPane();
-    Scene loginScene;
+    private GridPane loginPane = new GridPane();
+    private Scene loginScene;
 
-    TextField usernameTextField = new TextField();
-    PasswordField passwordField = new PasswordField();
+    private TextField usernameTextField = new TextField();
+    private PasswordField passwordField = new PasswordField();
 
-    Label usernameLabel = new Label("Email:    ");
-    Label passwordLabel = new Label("Password: ");
+    private Label usernameLabel = new Label("Email:    ");
+    private Label passwordLabel = new Label("Password: ");
 
-    Button signinButton = new Button("                        SIGN IN                        ");
-    CheckBox keepSignInCheckBox = new CheckBox("Keep me Sign in!");
+    private Button signinButton = new Button("                        SIGN IN                        ");
+    private CheckBox keepSignInCheckBox = new CheckBox("Keep me Sign in!");
 
     /**
      * Elements in Mail Box form
      */
-    GridPane mailBoxPane = new GridPane();
-    Scene mailBoxScene;
+    private GridPane mailBoxPane = new GridPane();
+    private Scene mailBoxScene;
 
-    MenuBar mailBoxMenuBar = new MenuBar();
-    HBox mailFuncButtonPane = new HBox();
+    private MenuBar mailBoxMenuBar = new MenuBar();
+    private HBox mailFuncButtonPane = new HBox();
 
-    Button newMailButton = new Button("BUTTON NEW");
-    Button deleteMailButton = new Button("BUTTON DELETE");
-    Button unreadMailButton = new Button("BUTTON UNREAD");
+    private Button newMailButton = new Button("BUTTON NEW");
+    private Button deleteMailButton = new Button("BUTTON DELETE");
+    private Button unreadMailButton = new Button("BUTTON UNREAD");
 
-    VBox foldersPane = new VBox();
-    VBox mailsPane = new VBox();
+    private VBox foldersPane = new VBox();
+    private VBox mailsPane = new VBox();
 
-    ListView mailBoxFoldersListView = new ListView();
-    ListView mailsListView = new ListView();
+    private ListView mailBoxFoldersListView = new ListView();
+    private ListView mailsListView = new ListView();
 
-    TextArea emailContentTextArea = new TextArea("");
+    private TextArea emailContentTextArea = new TextArea("");
 
     /**
      * Element check mails
      */
-    Store store;
-    Message[] messages;
+    private Store store;
+    private Message[] messages;
+    private ArrayList<Mail> mails = new ArrayList<>();
 
     /**
      * set up elements in Login form
@@ -143,12 +145,13 @@ public class Email_Login extends Application {
 
         foldersPane.getChildren().addAll(mailBoxFoldersListView);
         VBox.setVgrow(mailBoxFoldersListView, Priority.ALWAYS);
-        foldersPane.setMinWidth(300);
+        foldersPane.setMinWidth(250);
         mailsPane.getChildren().addAll(mailsListView);
         VBox.setVgrow(mailsListView, Priority.ALWAYS);
-        mailsPane.setMinWidth(300);
+        mailsPane.setMinWidth(250);
 
         mailFuncButtonPane.getChildren().addAll(newMailButton, deleteMailButton, unreadMailButton);
+        mailFuncButtonPane.setMinWidth(500);
 
         emailContentTextArea.setPrefWidth(1000);
         emailContentTextArea.setWrapText(true);
@@ -159,42 +162,43 @@ public class Email_Login extends Application {
         mailBoxPane.add(mailFuncButtonPane, 2, 1, 4, 1);
         mailBoxPane.add(emailContentTextArea, 2, 2, 4, 4);
 
-        mailBoxScene = new Scene(mailBoxPane);
+        mailBoxScene = new Scene(mailBoxPane, 900, 500);
     }
 
     /**
      * SET ACTION TO BUTTONS
      */
     private void buttonAction(Stage primaryStage) {
-        signinButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                String host = "pop.gmail.com";
-                String username = usernameTextField.getText();
-                String password = passwordField.getText();
-
-                if (checkLogin(host, username, password)) {
-                    /**
-                     * save username and password
-                     */
-                    if (keepSignInCheckBox.isSelected()) {
-                        preferences.put("username", usernameTextField.getText());
-                        preferences.put("password", passwordField.getText());
-                    } else {
-                        preferences.put("username", "");
-                        preferences.put("password", "");
-                    }
-
-                    primaryStage.setScene(mailBoxScene);
-                    primaryStage.show();
-
-                    getMailsToListView();
-
-                } else {
-                    System.out.println("Dang nhap that bai!");
-                }
-            }
+        signinButton.setOnAction((ActionEvent event) -> {
+            login(primaryStage);
         });
+    }
+
+    private void login(Stage primaryStage) {
+        String host = "pop.gmail.com";
+        String username = usernameTextField.getText();
+        String password = passwordField.getText();
+
+        if (checkLogin(host, username, password)) {
+            /**
+             * save username and password
+             */
+            if (keepSignInCheckBox.isSelected()) {
+                preferences.put("username", usernameTextField.getText());
+                preferences.put("password", passwordField.getText());
+            } else {
+                preferences.put("username", "");
+                preferences.put("password", "");
+            }
+
+            primaryStage.setScene(mailBoxScene);
+            primaryStage.show();
+
+            getMailsToListView();
+
+        } else {
+            System.out.println("Dang nhap that bai!");
+        }
     }
 
     private void getMailsToListView() {
@@ -206,7 +210,7 @@ public class Email_Login extends Application {
             messages = emailFolder.getMessages();
             System.out.println("messages.length---" + messages.length);
 
-            ObservableList mails = FXCollections.observableArrayList();
+            ObservableList mailsList = FXCollections.observableArrayList();
 
             for (int i = 0, n = messages.length; i < n; i++) {
                 Message message = messages[i];
@@ -216,44 +220,32 @@ public class Email_Login extends Application {
                 System.out.println("From: " + message.getFrom()[0]);
                 System.out.println("Text: " + message.getContent().toString());
 
-                mails.add(message.getSubject());
+                mailsList.add(message.getSubject());
+                mails.add(new Mail(message.getSubject(), message.getFrom()[0].toString(), message.getContent().toString()));
+
             }
-            mailsListView.setItems(mails);
+            mailsListView.setItems(mailsList);
             mailsListViewAction();
-            
+
             //close the store and folder objects
             emailFolder.close(false);
             store.close();
-        } catch (MessagingException ex) {
-            Logger.getLogger(Email_Login.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
+        } catch (MessagingException | IOException ex) {
             Logger.getLogger(Email_Login.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     private void mailsListViewAction() {
-        mailsListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                try {
-//                    Folder emailFolder = store.getFolder("inbox");
-//                    emailFolder.open(Folder.READ_ONLY);
-//                    messages = emailFolder.getMessages();
-
-                    int indexMail = mailsListView.getSelectionModel().getSelectedIndex();
-                    String content = "";
-                    content += "SUBJECT: " + messages[indexMail].getSubject();
-                    content += "\n-------------\n FROM: " + messages[indexMail].getFrom()[0];
-                    content += "\n-------------\n     " + messages[indexMail].getContent().toString();
-                    emailContentTextArea.setText(content);
-                } catch (MessagingException ex) {
-                    Logger.getLogger(Email_Login.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    Logger.getLogger(Email_Login.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
+        mailsListView.setOnMouseClicked((MouseEvent event) -> {
+            int indexMail = mailsListView.getSelectionModel().getSelectedIndex();
+            System.out.println(indexMail);
+            String content = "";
+            content += "SUBJECT: " + mails.get(indexMail).getSubject();
+            content += "\n-------------\n FROM: " + mails.get(indexMail).getFrom();
+            content += "\n-------------\n     " + mails.get(indexMail).getContent();
+            emailContentTextArea.setText(content);
         });
+
     }
 
     private boolean checkLogin(String host, String user, String password) {
@@ -284,10 +276,14 @@ public class Email_Login extends Application {
         setUpMailBox(primaryStage);
 
         primaryStage.setTitle("Email Client!");
-        primaryStage.getIcons().add(new Image("http://icons.iconarchive.com/icons/zerode/plump/32/Mail-icon.png"));
+//        primaryStage.getIcons().add(new Image(Email_Login.class.getResourceAsStream("image/mail-icon.png")));
         primaryStage.setScene(loginScene);
 //        primaryStage.setResizable(false);
         primaryStage.show();
+
+        if (usernameTextField.getText().compareTo("") != 0) {
+            login(primaryStage);
+        }
     }
 
     public static void main(String[] args) {
