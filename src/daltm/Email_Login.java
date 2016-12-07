@@ -5,6 +5,7 @@
  */
 package daltm;
 
+import model.bean.Mail;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -21,6 +22,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
@@ -35,6 +37,8 @@ public class Email_Login extends Application {
 
     private final Font FONT_SUBJECT = new Font("Arial", 20);
     private final Font FONT_LISTVIEW = new Font("Arial", 20);
+
+    private Stage primaryStage = new Stage();
 
     /**
      * Store username and password in Preference
@@ -65,6 +69,9 @@ public class Email_Login extends Application {
     private Scene mailBoxScene;
 
     private MenuBar mailBoxMenuBar = new MenuBar();
+    private MenuItem logoutItem = new MenuItem("Logout");
+    private MenuItem exitItem = new MenuItem("Exit");
+    private MenuItem composeMailItem = new MenuItem("Compose");
 
     private VBox foldersPane = new VBox();
     private ListView mailBoxFoldersListView = new ListView();
@@ -77,9 +84,9 @@ public class Email_Login extends Application {
     private Label subjectLabel = new Label("SUBJECT: ");
     private TextArea mailContentTextArea = new TextArea("");
 
-    private Button newMailButton = new Button("BUTTON NEW");
-    private Button deleteMailButton = new Button("BUTTON DELETE");
-    private Button unreadMailButton = new Button("BUTTON UNREAD");
+    private Button newMailButton = new Button("NEW");
+    private Button replyMailButton = new Button("REPLY");
+    private Button forwardMailButton = new Button("FORWARD");
 
     /**
      * Element check mails
@@ -88,9 +95,29 @@ public class Email_Login extends Application {
     private ArrayList<Mail> mails = new ArrayList<>();
 
     /**
+     * Elements Compose New Mail
+     */
+    private Stage composerStage = new Stage();
+    private Scene composerScene;
+    private VBox composerPane = new VBox();
+    private GridPane envelopePane = new GridPane();
+    private GridPane buttonsPane = new GridPane();
+
+    Label toLabel = new Label("TO: ");
+    Label subjectNewMailLabel = new Label("SUBJECT: ");
+
+    TextField toTextField = new TextField();
+    TextField subjectNewMailTextField = new TextField();
+
+    TextArea newMailContent = new TextArea();
+
+    Button sendButton = new Button("SEND");
+    Button recomposeButton = new Button("RE-COMPOSE");
+
+    /**
      * set up elements in Login form
      */
-    private void setUpLogin(Stage primaryStage) {
+    private void setUpLogin() {
         preferences = Preferences.userRoot().node(this.getClass().getName());
         String tmpString = preferences.get("username", "");
 
@@ -108,9 +135,9 @@ public class Email_Login extends Application {
         if (tmpString.compareTo("") != 0) {
             passwordField.setText(tmpString);
         }
-        
+
         signinButton.prefWidthProperty().bind(primaryStage.widthProperty());
-        
+
         if (usernameTextField.getText().compareTo("") != 0) {
             keepSignInCheckBox.setSelected(true);
         }
@@ -128,15 +155,15 @@ public class Email_Login extends Application {
         loginPane.add(signinButton, 0, 3, 2, 1);
         loginPane.add(keepSignInCheckBox, 0, 4, 2, 1);
 
-        buttonAction(primaryStage);
+        loginFormAction();
 
-        loginScene = new Scene(loginPane);
+        loginScene = new Scene(loginPane, 400, 300);
     }
 
     /**
      * set up elements in Mail Box
      */
-    private void setUpMailBox(Stage primaryStage) {
+    private void setUpMailBox() {
         mailBoxPane.setPadding(new Insets(5, 5, 5, 5));
 //        mailBoxPane.setAlignment(Pos.CENTER);
 
@@ -147,6 +174,9 @@ public class Email_Login extends Application {
         Menu menuFile = new Menu("File");
         Menu menuOptions = new Menu("Options");
         Menu menuHelp = new Menu("Help");
+
+        menuFile.getItems().addAll(composeMailItem, logoutItem, exitItem);
+
         mailBoxMenuBar.getMenus().addAll(menuFile, menuOptions, menuHelp);
         mailBoxMenuBar.prefWidthProperty().bind(primaryStage.widthProperty());
 
@@ -170,10 +200,9 @@ public class Email_Login extends Application {
         mailsPane.setMinWidth(250);
 
         //ADD BUTTONS TO BUTTON BAR
-        mailFuncButtonPane.getChildren().addAll(newMailButton, deleteMailButton, unreadMailButton);
+        mailFuncButtonPane.getChildren().addAll(newMailButton, replyMailButton, forwardMailButton);
         mailFuncButtonPane.setMinWidth(500);
 
-        mailContentTextArea.setPrefWidth(1000);
         mailContentTextArea.setWrapText(true);
 
         subjectLabel.setFont(FONT_SUBJECT);
@@ -192,15 +221,67 @@ public class Email_Login extends Application {
     }
 
     /**
-     * SET ACTION TO BUTTONS
+     * set up elements in Composer
      */
-    private void buttonAction(Stage primaryStage) {
-        signinButton.setOnAction((ActionEvent event) -> {
-            login(primaryStage);
+    private void setUpComposer() {
+
+        toTextField.setPrefWidth(430);
+        subjectNewMailTextField.setPrefWidth(430);
+
+        envelopePane.add(toLabel, 0, 0);
+        envelopePane.add(subjectNewMailLabel, 0, 1);
+        envelopePane.add(toTextField, 1, 0);
+        envelopePane.add(subjectNewMailTextField, 1, 1);
+        envelopePane.setHgap(5);
+        envelopePane.setVgap(5);
+
+        sendButton.prefWidthProperty().bind(composerStage.widthProperty());
+        recomposeButton.prefWidthProperty().bind(composerStage.widthProperty());
+
+        buttonsPane.add(sendButton, 0, 0);
+        buttonsPane.add(recomposeButton, 1, 0);
+        buttonsPane.setHgap(5);
+        buttonsPane.setVgap(5);
+
+        composerPane.getChildren().addAll(envelopePane, newMailContent, buttonsPane);
+        composerPane.setPadding(new Insets(5));
+        composerPane.setSpacing(10);
+        VBox.setVgrow(newMailContent, Priority.ALWAYS);
+
+        composerScene = new Scene(composerPane, 500, 350);
+
+        composerFormAction();
+    }
+
+    private void composerFormAction() {
+        sendButton.setOnAction((ActionEvent event) -> {
+            //TODO code here
+        });
+        recomposeButton.setOnAction((ActionEvent event) -> {
+            //TODO code here
+            toTextField.setText("");
+            subjectNewMailTextField.setText("");
+            newMailContent.setText("");
         });
     }
 
-    private void login(Stage primaryStage) {
+    /**
+     * SET ACTION TO BUTTONS
+     */
+    private void loginFormAction() {
+//        signinButton.setOnAction((ActionEvent event) -> {
+//            login(primaryStage);
+//        });
+
+        signinButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                login();
+            }
+        });
+    }
+
+    private void login() {
         String host = "pop.gmail.com";
         String username = usernameTextField.getText();
         String password = passwordField.getText();
@@ -218,21 +299,59 @@ public class Email_Login extends Application {
             }
 
             primaryStage.setScene(mailBoxScene);
+            primaryStage.setResizable(true);
             primaryStage.show();
 
             //threads get list mails
-            new Thread(() -> {
-                getMailsToListView();
-            }).start();
+            new Thread(this::getMailsToListView).start();
 
         } else {
             System.out.println("Dang nhap that bai!");
         }
     }
 
+    private static String getMailContent(Part part) throws Exception {
+
+        if (part.isMimeType("multipart/*")) {
+            Multipart mp = (Multipart) part.getContent();
+            int count = mp.getCount();
+            for (int i = 0; i < count; i++) {
+                getMailContent(mp.getBodyPart(i));
+                if (mp.getBodyPart(i).isMimeType("text/plain")) {
+                    return (String) mp.getBodyPart(i).getContent();
+                }
+            }
+        }
+        return null;
+    }
+
+    public static String getFrom(Message m) throws Exception {
+        Address[] a;
+        String from = "";
+        // FROM
+        if ((a = m.getFrom()) != null) {
+            for (int j = 0; j < a.length; j++) {
+                from += a[j].toString();
+            }
+        }
+        return from;
+    }
+
+    public static String getTo(Message m) throws Exception {
+        Address[] a;
+        String to = "";
+
+        // TO
+        if ((a = m.getRecipients(Message.RecipientType.TO)) != null) {
+            for (int j = 0; j < a.length; j++) {
+                to += a[j].toString();
+            }
+        }
+        return to;
+    }
+
     private void getMailsToListView() {
         try {
-            System.out.println("get mail");
             Folder emailFolder = store.getFolder("inbox");
             emailFolder.open(Folder.READ_ONLY);
 
@@ -246,32 +365,52 @@ public class Email_Login extends Application {
                 System.out.println("---------------------------------");
                 System.out.println("Email Number " + (i + 1));
                 System.out.println("Subject: " + message.getSubject());
-                System.out.println("From: " + message.getFrom()[0]);
-                System.out.println("Text: " + message.getContent().toString());
+                System.out.println("From: " + getFrom(message));
+                System.out.println("To: " + getTo(message));
+                System.out.println("Text: " + getMailContent(message));
 
                 mailsList.add(message.getSubject());
-                mails.add(new Mail(message.getSubject(), message.getFrom()[0].toString(), message.getContent().toString()));
+                mails.add(new Mail(message.getSubject(), getFrom(message), getMailContent(message)));
             }
             mailsListView.setItems(mailsList);
-            mailsListViewAction();
+            mailFormAction();
 
             //close the store and folder objects
             emailFolder.close(false);
             store.close();
         } catch (MessagingException | IOException ex) {
             Logger.getLogger(Email_Login.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
+            Logger.getLogger(Email_Login.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void mailsListViewAction() {
-        mailsListView.setOnMouseClicked((MouseEvent event) -> {
-            int indexMail = mailsListView.getSelectionModel().getSelectedIndex();
-            System.out.println(indexMail);
-            subjectLabel.setText("SUBJECT: " + mails.get(indexMail).getSubject());
-            String content = "";
-            content += "\tFROM: " + mails.get(indexMail).getFrom();
-            content += "\n-------------\n     " + mails.get(indexMail).getContent();
-            mailContentTextArea.setText(content);
+    private void mailFormAction() {
+        mailsListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                int indexMail = mailsListView.getSelectionModel().getSelectedIndex();
+                System.out.println(indexMail);
+                subjectLabel.setText("SUBJECT: " + mails.get(indexMail).getSubject());
+                String content = "";
+                content += "\tFROM: " + mails.get(indexMail).getFrom();
+                content += "\n-------------\n" + mails.get(indexMail).getContent();
+                mailContentTextArea.setText(content);
+            }
+        });
+
+        exitItem.setOnAction((ActionEvent event) -> {
+            System.exit(0);
+        });
+        logoutItem.setOnAction((ActionEvent event) -> {
+            primaryStage.setScene(loginScene);
+            primaryStage.setResizable(false);
+            primaryStage.show();
+        });
+        composeMailItem.setOnAction((ActionEvent event) -> {
+            composerStage.setScene(composerScene);
+            composerStage.setResizable(false);
+            composerStage.show();
         });
 
     }
@@ -294,20 +433,28 @@ public class Email_Login extends Application {
             return false;
         }
         return true;
+    }
 
+    private void initGUI() {
+        primaryStage.setTitle("TLD MAIL");
+//        Image image = new Image("mail.png");
+//        primaryStage.getIcons().add(image);
+        primaryStage.getIcons().add(new Image("http://icons.iconarchive.com/icons/zerode/plump/32/Mail-icon.png"));
+        primaryStage.setScene(loginScene);
+        primaryStage.setResizable(false);
+        primaryStage.show();
     }
 
     @Override
     public void start(Stage primaryStage) {
 
-        setUpLogin(primaryStage);
-        setUpMailBox(primaryStage);
+        this.primaryStage = primaryStage;
 
-        primaryStage.setTitle("Email Client!");
-//        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("image/mail-icon.png")));
-        primaryStage.setScene(loginScene);
-//        primaryStage.setResizable(false);
-        primaryStage.show();
+        setUpLogin();
+        setUpMailBox();
+        setUpComposer();
+
+        initGUI();
 
 //        if (usernameTextField.getText().compareTo("") != 0) {
 //            login(primaryStage);

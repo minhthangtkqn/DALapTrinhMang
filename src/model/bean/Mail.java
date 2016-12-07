@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package daltm;
+package model.bean;
 
 /**
  *
@@ -11,9 +11,9 @@ package daltm;
  */
 public class Mail {
 
-    private String subject, content, from;
+    private String subject, from, content;
 
-    public Mail(String subject, String content, String from) {
+    public Mail(String subject, String from, String content) {
         this.subject = subject;
         this.content = content;
         this.from = from;
