@@ -23,15 +23,18 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javax.mail.*;
-import static jdk.nashorn.internal.codegen.OptimisticTypesPersistence.store;
 
 /**
  *
  * @author TLDs
  */
 public class Email_Login extends Application {
+
+    private final Font FONT_SUBJECT = new Font("Arial", 20);
+    private final Font FONT_LISTVIEW = new Font("Arial", 20);
 
     /**
      * Store username and password in Preference
@@ -60,19 +63,21 @@ public class Email_Login extends Application {
     private Scene mailBoxScene;
 
     private MenuBar mailBoxMenuBar = new MenuBar();
+
+    private VBox foldersPane = new VBox();
+    private ListView mailBoxFoldersListView = new ListView();
+
+    private VBox mailsPane = new VBox();
+    private ListView mailsListView = new ListView();
+
+    private VBox mailContentPane = new VBox();
     private HBox mailFuncButtonPane = new HBox();
+    private Label subjectLabel = new Label("SUBJECT: ");
+    private TextArea mailContentTextArea = new TextArea("");
 
     private Button newMailButton = new Button("BUTTON NEW");
     private Button deleteMailButton = new Button("BUTTON DELETE");
     private Button unreadMailButton = new Button("BUTTON UNREAD");
-
-    private VBox foldersPane = new VBox();
-    private VBox mailsPane = new VBox();
-
-    private ListView mailBoxFoldersListView = new ListView();
-    private ListView mailsListView = new ListView();
-
-    private TextArea emailContentTextArea = new TextArea("");
 
     /**
      * Element check mails
@@ -129,20 +134,24 @@ public class Email_Login extends Application {
         mailBoxPane.setHgap(5);
         mailBoxPane.setVgap(5);
 
+        //menu
         Menu menuFile = new Menu("File");
         Menu menuOptions = new Menu("Options");
         Menu menuHelp = new Menu("Help");
         mailBoxMenuBar.getMenus().addAll(menuFile, menuOptions, menuHelp);
         mailBoxMenuBar.prefWidthProperty().bind(primaryStage.widthProperty());
 
+        //FOLDER LISTVIEW
         ObservableList folders = FXCollections.observableArrayList("INBOX", "SENT", "TRASH", "ALL");
         mailBoxFoldersListView.setItems(folders);
         mailBoxFoldersListView.prefHeightProperty().bind(primaryStage.heightProperty());
 
+        //MAIL LISTVIEW
         ObservableList mails = FXCollections.observableArrayList("MAIL 1", "MAIL 2", "MAIL 3");
         mailsListView.setItems(mails);
         mailsListView.prefHeightProperty().bind(primaryStage.heightProperty());
 
+        //ADD LISTVIEWS TO PANES
         foldersPane.getChildren().addAll(mailBoxFoldersListView);
         VBox.setVgrow(mailBoxFoldersListView, Priority.ALWAYS);
         foldersPane.setMinWidth(250);
@@ -150,17 +159,24 @@ public class Email_Login extends Application {
         VBox.setVgrow(mailsListView, Priority.ALWAYS);
         mailsPane.setMinWidth(250);
 
+        //ADD BUTTONS TO BUTTON BAR
         mailFuncButtonPane.getChildren().addAll(newMailButton, deleteMailButton, unreadMailButton);
         mailFuncButtonPane.setMinWidth(500);
 
-        emailContentTextArea.setPrefWidth(1000);
-        emailContentTextArea.setWrapText(true);
+        mailContentTextArea.setPrefWidth(1000);
+        mailContentTextArea.setWrapText(true);
+
+        subjectLabel.setFont(FONT_SUBJECT);
+
+        //ADD CONTENT ELEMENTS TO VBOX
+        mailContentPane.getChildren().addAll(mailFuncButtonPane, subjectLabel, mailContentTextArea);
+        VBox.setVgrow(mailContentTextArea, Priority.ALWAYS);
+        mailContentPane.setSpacing(5);
 
         mailBoxPane.add(mailBoxMenuBar, 0, 0, 6, 1);
         mailBoxPane.add(mailsPane, 1, 1, 1, 3);
         mailBoxPane.add(foldersPane, 0, 1, 1, 3);
-        mailBoxPane.add(mailFuncButtonPane, 2, 1, 4, 1);
-        mailBoxPane.add(emailContentTextArea, 2, 2, 4, 4);
+        mailBoxPane.add(mailContentPane, 2, 1, 4, 5);
 
         mailBoxScene = new Scene(mailBoxPane, 900, 500);
     }
@@ -222,7 +238,6 @@ public class Email_Login extends Application {
 
                 mailsList.add(message.getSubject());
                 mails.add(new Mail(message.getSubject(), message.getFrom()[0].toString(), message.getContent().toString()));
-
             }
             mailsListView.setItems(mailsList);
             mailsListViewAction();
@@ -239,11 +254,11 @@ public class Email_Login extends Application {
         mailsListView.setOnMouseClicked((MouseEvent event) -> {
             int indexMail = mailsListView.getSelectionModel().getSelectedIndex();
             System.out.println(indexMail);
+            subjectLabel.setText("SUBJECT: " + mails.get(indexMail).getSubject());
             String content = "";
-            content += "SUBJECT: " + mails.get(indexMail).getSubject();
-            content += "\n-------------\n FROM: " + mails.get(indexMail).getFrom();
+            content += "\tFROM: " + mails.get(indexMail).getFrom();
             content += "\n-------------\n     " + mails.get(indexMail).getContent();
-            emailContentTextArea.setText(content);
+            mailContentTextArea.setText(content);
         });
 
     }
@@ -276,7 +291,7 @@ public class Email_Login extends Application {
         setUpMailBox(primaryStage);
 
         primaryStage.setTitle("Email Client!");
-//        primaryStage.getIcons().add(new Image(Email_Login.class.getResourceAsStream("image/mail-icon.png")));
+//        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("image/mail-icon.png")));
         primaryStage.setScene(loginScene);
 //        primaryStage.setResizable(false);
         primaryStage.show();
@@ -291,63 +306,3 @@ public class Email_Login extends Application {
     }
 
 }
-
-//class getMail {
-//
-//    public static void check(String host, String storeType, String user, String password) {
-//        try {
-//            //create properties field
-//            Properties properties = new Properties();
-//
-//            properties.put("mail.pop3.host", host);
-//            properties.put("mail.pop3.port", "995");
-//            properties.put("mail.pop3.starttls.enable", "true");
-//            Session emailSession = Session.getDefaultInstance(properties);
-//
-//            //create the POP3 store object and connect with the pop server
-//            Store store = emailSession.getStore("pop3s");
-//
-//            store.connect(host, user, password);
-//
-//            //create the folder object and open it
-//            Folder emailFolder = store.getFolder("INBOX");
-//            emailFolder.open(Folder.READ_ONLY);
-//
-//            // retrieve the messages from the folder in an array and print it
-//            Message[] messages = emailFolder.getMessages();
-//            System.out.println("messages.length---" + messages.length);
-//
-//            for (int i = 0, n = messages.length; i < n; i++) {
-//                Message message = messages[i];
-//                System.out.println("---------------------------------");
-//                System.out.println("Email Number " + (i + 1));
-//                System.out.println("Subject: " + message.getSubject());
-//                System.out.println("From: " + message.getFrom()[0]);
-//                System.out.println("Text: " + message.getContent().toString());
-//
-//            }
-//
-//            //close the store and folder objects
-//            emailFolder.close(false);
-//            store.close();
-//
-//        } catch (NoSuchProviderException e) {
-//            e.printStackTrace();
-//        } catch (MessagingException e) {
-//            e.printStackTrace();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-////    public static void main(String[] args) {
-////
-////        String host = "pop.gmail.com"; //change accordingly
-////        String mailStoreType = "pop3";
-////        String username = "thanghoangbks2014@gmail.com";// change accordingly
-////        String password = "01696578341"; // change accordingly
-////
-////        check(host, mailStoreType, username, password);
-////
-////    }
-//}
