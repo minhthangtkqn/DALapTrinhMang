@@ -47,13 +47,15 @@ public class Email_Login extends Application {
     private GridPane loginPane = new GridPane();
     private Scene loginScene;
 
+    private Label welcomeLabel = new Label("WELCOME TO DEMO EMAIL");
+
     private TextField usernameTextField = new TextField();
     private PasswordField passwordField = new PasswordField();
 
     private Label usernameLabel = new Label("Email:    ");
     private Label passwordLabel = new Label("Password: ");
 
-    private Button signinButton = new Button("                        SIGN IN                        ");
+    private Button signinButton = new Button("SIGN IN");
     private CheckBox keepSignInCheckBox = new CheckBox("Keep me Sign in!");
 
     /**
@@ -83,7 +85,6 @@ public class Email_Login extends Application {
      * Element check mails
      */
     private Store store;
-    private Message[] messages;
     private ArrayList<Mail> mails = new ArrayList<>();
 
     /**
@@ -93,31 +94,39 @@ public class Email_Login extends Application {
         preferences = Preferences.userRoot().node(this.getClass().getName());
         String tmpString = preferences.get("username", "");
 
+        welcomeLabel.setFont(FONT_SUBJECT);
+
         usernameTextField.setPromptText("USERNAME");
+        usernameTextField.setPrefWidth(200);
         if (tmpString.compareTo("") != 0) {
             usernameTextField.setText(tmpString);
         }
 
         tmpString = preferences.get("password", "");
         passwordField.setPromptText("PASSWORD");
+        passwordField.setPrefWidth(200);
         if (tmpString.compareTo("") != 0) {
             passwordField.setText(tmpString);
         }
+        
+        signinButton.prefWidthProperty().bind(primaryStage.widthProperty());
+        
         if (usernameTextField.getText().compareTo("") != 0) {
             keepSignInCheckBox.setSelected(true);
         }
 
-        loginPane.setPadding(new Insets(40, 40, 40, 40));
+        loginPane.setPadding(new Insets(40));
         loginPane.setAlignment(Pos.CENTER);
         loginPane.setHgap(10);
         loginPane.setVgap(10);
 
-        loginPane.add(usernameLabel, 0, 0);
-        loginPane.add(passwordLabel, 0, 1);
-        loginPane.add(usernameTextField, 1, 0);
-        loginPane.add(passwordField, 1, 1);
-        loginPane.add(signinButton, 0, 2, 2, 1);
-        loginPane.add(keepSignInCheckBox, 0, 3, 2, 1);
+        loginPane.add(welcomeLabel, 0, 0, 2, 1);
+        loginPane.add(usernameLabel, 0, 1);
+        loginPane.add(passwordLabel, 0, 2);
+        loginPane.add(usernameTextField, 1, 1);
+        loginPane.add(passwordField, 1, 2);
+        loginPane.add(signinButton, 0, 3, 2, 1);
+        loginPane.add(keepSignInCheckBox, 0, 4, 2, 1);
 
         buttonAction(primaryStage);
 
@@ -154,7 +163,8 @@ public class Email_Login extends Application {
         //ADD LISTVIEWS TO PANES
         foldersPane.getChildren().addAll(mailBoxFoldersListView);
         VBox.setVgrow(mailBoxFoldersListView, Priority.ALWAYS);
-        foldersPane.setMinWidth(250);
+        foldersPane.setPrefWidth(150);
+        foldersPane.setMinWidth(150);
         mailsPane.getChildren().addAll(mailsListView);
         VBox.setVgrow(mailsListView, Priority.ALWAYS);
         mailsPane.setMinWidth(250);
@@ -210,7 +220,10 @@ public class Email_Login extends Application {
             primaryStage.setScene(mailBoxScene);
             primaryStage.show();
 
-            getMailsToListView();
+            //threads get list mails
+            new Thread(() -> {
+                getMailsToListView();
+            }).start();
 
         } else {
             System.out.println("Dang nhap that bai!");
@@ -218,12 +231,12 @@ public class Email_Login extends Application {
     }
 
     private void getMailsToListView() {
-
         try {
+            System.out.println("get mail");
             Folder emailFolder = store.getFolder("inbox");
             emailFolder.open(Folder.READ_ONLY);
 
-            messages = emailFolder.getMessages();
+            Message[] messages = emailFolder.getMessages();
             System.out.println("messages.length---" + messages.length);
 
             ObservableList mailsList = FXCollections.observableArrayList();
@@ -296,9 +309,9 @@ public class Email_Login extends Application {
 //        primaryStage.setResizable(false);
         primaryStage.show();
 
-        if (usernameTextField.getText().compareTo("") != 0) {
-            login(primaryStage);
-        }
+//        if (usernameTextField.getText().compareTo("") != 0) {
+//            login(primaryStage);
+//        }
     }
 
     public static void main(String[] args) {
