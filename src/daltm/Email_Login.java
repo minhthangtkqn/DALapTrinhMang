@@ -15,19 +15,19 @@ import java.util.prefs.Preferences;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.event.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import javafx.scene.image.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 /**
  *
@@ -69,9 +69,9 @@ public class Email_Login extends Application {
     private Scene mailBoxScene;
 
     private MenuBar mailBoxMenuBar = new MenuBar();
+    private MenuItem composeMailItem = new MenuItem("Compose");
     private MenuItem logoutItem = new MenuItem("Logout");
     private MenuItem exitItem = new MenuItem("Exit");
-    private MenuItem composeMailItem = new MenuItem("Compose");
 
     private VBox foldersPane = new VBox();
     private ListView mailBoxFoldersListView = new ListView();
@@ -104,10 +104,10 @@ public class Email_Login extends Application {
     private GridPane buttonsPane = new GridPane();
 
     Label toLabel = new Label("TO: ");
-    Label subjectNewMailLabel = new Label("SUBJECT: ");
+    Label newMailSubjectLabel = new Label("SUBJECT: ");
 
     TextField toTextField = new TextField();
-    TextField subjectNewMailTextField = new TextField();
+    TextField newMailSubjectTextField = new TextField();
 
     TextArea newMailContent = new TextArea();
 
@@ -165,7 +165,6 @@ public class Email_Login extends Application {
      */
     private void setUpMailBox() {
         mailBoxPane.setPadding(new Insets(5, 5, 5, 5));
-//        mailBoxPane.setAlignment(Pos.CENTER);
 
         mailBoxPane.setHgap(5);
         mailBoxPane.setVgap(5);
@@ -202,6 +201,7 @@ public class Email_Login extends Application {
         //ADD BUTTONS TO BUTTON BAR
         mailFuncButtonPane.getChildren().addAll(newMailButton, replyMailButton, forwardMailButton);
         mailFuncButtonPane.setMinWidth(500);
+        mailFuncButtonPane.setSpacing(20);
 
         mailContentTextArea.setWrapText(true);
 
@@ -226,12 +226,12 @@ public class Email_Login extends Application {
     private void setUpComposer() {
 
         toTextField.setPrefWidth(430);
-        subjectNewMailTextField.setPrefWidth(430);
+        newMailSubjectTextField.setPrefWidth(430);
 
         envelopePane.add(toLabel, 0, 0);
-        envelopePane.add(subjectNewMailLabel, 0, 1);
+        envelopePane.add(newMailSubjectLabel, 0, 1);
         envelopePane.add(toTextField, 1, 0);
-        envelopePane.add(subjectNewMailTextField, 1, 1);
+        envelopePane.add(newMailSubjectTextField, 1, 1);
         envelopePane.setHgap(5);
         envelopePane.setVgap(5);
 
@@ -256,11 +256,18 @@ public class Email_Login extends Application {
     private void composerFormAction() {
         sendButton.setOnAction((ActionEvent event) -> {
             //TODO code here
+            ArrayList<String> to = new ArrayList<>();
+            to.add("thanghoangbks2014@gmail.com");
+//            to.add(toTextField.getText());
+            
+            SendEmail sendEmail = new SendEmail();
+            String sendEmailResult = sendEmail.send(to, preferences.get("username", ""), preferences.get("password", ""), newMailContent.getText(), newMailSubjectTextField.getText());
+            System.out.println(sendEmailResult);
         });
         recomposeButton.setOnAction((ActionEvent event) -> {
             //TODO code here
             toTextField.setText("");
-            subjectNewMailTextField.setText("");
+            newMailSubjectTextField.setText("");
             newMailContent.setText("");
         });
     }
@@ -269,15 +276,8 @@ public class Email_Login extends Application {
      * SET ACTION TO BUTTONS
      */
     private void loginFormAction() {
-//        signinButton.setOnAction((ActionEvent event) -> {
-//            login(primaryStage);
-//        });
-
-        signinButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                login();
-            }
+        signinButton.setOnAction((ActionEvent event) -> {
+            login();
         });
     }
 
@@ -386,17 +386,14 @@ public class Email_Login extends Application {
     }
 
     private void mailFormAction() {
-        mailsListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                int indexMail = mailsListView.getSelectionModel().getSelectedIndex();
-                System.out.println(indexMail);
-                subjectLabel.setText("SUBJECT: " + mails.get(indexMail).getSubject());
-                String content = "";
-                content += "\tFROM: " + mails.get(indexMail).getFrom();
-                content += "\n-------------\n" + mails.get(indexMail).getContent();
-                mailContentTextArea.setText(content);
-            }
+        mailsListView.setOnMouseClicked((MouseEvent event) -> {
+            int indexMail = mailsListView.getSelectionModel().getSelectedIndex();
+            System.out.println(indexMail);
+            subjectLabel.setText("SUBJECT: " + mails.get(indexMail).getSubject());
+            String content = "";
+            content += "\tFROM: " + mails.get(indexMail).getFrom();
+            content += "\n-------------\n" + mails.get(indexMail).getContent();
+            mailContentTextArea.setText(content);
         });
 
         exitItem.setOnAction((ActionEvent event) -> {
@@ -408,11 +405,18 @@ public class Email_Login extends Application {
             primaryStage.show();
         });
         composeMailItem.setOnAction((ActionEvent event) -> {
-            composerStage.setScene(composerScene);
-            composerStage.setResizable(false);
-            composerStage.show();
+            openComposerForm();
         });
 
+        newMailButton.setOnAction((ActionEvent event) -> {
+            openComposerForm();
+        });
+    }
+
+    private void openComposerForm() {
+        composerStage.setScene(composerScene);
+        composerStage.setResizable(false);
+        composerStage.show();
     }
 
     private boolean checkLogin(String host, String user, String password) {
@@ -437,8 +441,6 @@ public class Email_Login extends Application {
 
     private void initGUI() {
         primaryStage.setTitle("TLD MAIL");
-//        Image image = new Image("mail.png");
-//        primaryStage.getIcons().add(image);
         primaryStage.getIcons().add(new Image("http://icons.iconarchive.com/icons/zerode/plump/32/Mail-icon.png"));
         primaryStage.setScene(loginScene);
         primaryStage.setResizable(false);
