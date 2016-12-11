@@ -65,12 +65,16 @@ public class SendEmail {
         return "Gui mail that bai!";
     }
 
-//    public static void main(String[] args) {
+    public static void main(String[] args) {
 //        ArrayList<String> arrayReceiver = new ArrayList<>();
 //        arrayReceiver.add("hoangminhthang21051995@gmail.com");
 //        arrayReceiver.add("thanghoangbks2014@gmail.com");
 //
 //        SendEmail sendEmail = new SendEmail();
 //        sendEmail.send(arrayReceiver, "hoangminhthang21051995@gmail.com", "toilathang", "Noi dung Email", "Tieu de");
-//    }
+
+        String abc = "abhs bhsadb adb jhsadb j   asbdj";
+        System.out.println(abc.replaceAll("\\s+", ""));
+        System.out.println("s");
+    }
 }

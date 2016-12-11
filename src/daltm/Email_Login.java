@@ -256,10 +256,8 @@ public class Email_Login extends Application {
     private void composerFormAction() {
         sendButton.setOnAction((ActionEvent event) -> {
             //TODO code here
-            ArrayList<String> to = new ArrayList<>();
-            to.add("thanghoangbks2014@gmail.com");
-//            to.add(toTextField.getText());
-            
+            ArrayList<String> to = getArrayReceiver(toTextField);
+
             SendEmail sendEmail = new SendEmail();
             String sendEmailResult = sendEmail.send(to, preferences.get("username", ""), preferences.get("password", ""), newMailContent.getText(), newMailSubjectTextField.getText());
             System.out.println(sendEmailResult);
@@ -270,6 +268,19 @@ public class Email_Login extends Application {
             newMailSubjectTextField.setText("");
             newMailContent.setText("");
         });
+    }
+
+    private ArrayList<String> getArrayReceiver(TextField receiverTextField) {
+        ArrayList<String> receiver = new ArrayList<>();
+
+        String tmp = receiverTextField.getText().replaceAll("\\s+", "");
+        
+        String[] E = tmp.split(",");
+        for (int i = 0; i < E.length; i++) {
+            receiver.add(E[i]);
+        }
+
+        return receiver;
     }
 
     /**
