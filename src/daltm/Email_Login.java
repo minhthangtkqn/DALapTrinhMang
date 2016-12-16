@@ -452,7 +452,10 @@ public class Email_Login extends Application {
 
     private void initGUI() {
         primaryStage.setTitle("TLD MAIL");
-        primaryStage.getIcons().add(new Image("http://icons.iconarchive.com/icons/zerode/plump/32/Mail-icon.png"));
+//        primaryStage.getIcons().add(new Image("http://icons.iconarchive.com/icons/zerode/plump/32/Mail-icon.png"));
+        primaryStage.getIcons().add(new Image(getClass().getResource("mail.png").toString()));
+        
+        
         primaryStage.setScene(loginScene);
         primaryStage.setResizable(false);
         primaryStage.show();
