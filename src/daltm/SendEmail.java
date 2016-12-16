@@ -9,13 +9,18 @@ package daltm;
  *
  * @author TLDs
  */
+import java.io.File;
 import java.util.*;
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
 import javax.mail.*;
 import javax.mail.internet.*;
 
 public class SendEmail {
 
-    public String send(ArrayList<String> to, String from, String password, String messageContent, String messageSubject) {
+    public boolean send(ArrayList<String> to, String from, String password,
+            String messageSubject, String messageContent, ArrayList<File> attachFiles) {
         // Assuming you are sending email from localhost
         String host = "smtp.gmail.com";
 
@@ -28,6 +33,8 @@ public class SendEmail {
         properties.put("mail.smtp.host", host);
         properties.put("mail.smtp.port", "587");
 
+        System.out.println("Setup done!");
+
         // Get the default Session object.
         Session session = Session.getInstance(properties,
                 new javax.mail.Authenticator() {
@@ -38,31 +45,63 @@ public class SendEmail {
         });
         try {
             // Create a default MimeMessage object.
-            Message message = new MimeMessage(session);
+            MimeMessage message = new MimeMessage(session);
 
-            // Set From: header field of the header.
+            // Set From: địa chỉ mail người gửi
             message.setFrom(new InternetAddress(from));
 
-            // Set To: header field of the header.
+            // Set To: Danh sách mail những người nhận
             for (int i = 0; i < to.size(); i++) {
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(to.get(i)));
             }
 
-            // Set Subject: header field
+            // Set Subject: tiêu đề Email
             message.setSubject(messageSubject);
 
-            // Now set the actual message
-            message.setText(messageContent);
+            // Create the message part 
+            BodyPart messageBodyPart = new MimeBodyPart();
+
+            // Nội dung text của Email
+            messageBodyPart.setText(messageContent);
+
+            // Create a multipar message
+            Multipart multipart = new MimeMultipart();
+
+            // Set text message part
+            multipart.addBodyPart(messageBodyPart);
+
+            // Thêm các file đính kèm
+            if (!attachFiles.isEmpty()) {
+                for (File file : attachFiles) {
+                    messageBodyPart = new MimeBodyPart();
+                    DataSource source = new FileDataSource(file.getAbsolutePath());
+                    messageBodyPart.setDataHandler(new DataHandler(source));
+                    messageBodyPart.setFileName(getFileName(file.getAbsolutePath()));
+                    multipart.addBodyPart(messageBodyPart);
+                }
+            }
+            // Send the complete message parts
+            message.setContent(multipart);
+
+            System.out.println("content done");
 
             // Send message
-            Transport.send(message);
-            return "Sent message successfully....";
+            Transport.send(message, from, password);
+            System.out.println("send done");
+            return true;
         } catch (MessagingException mex) {
             System.out.println(mex);
         } catch (Exception ex) {
             System.out.println(ex);
         }
-        return "Gui mail that bai!";
+        return false;
+    }
+
+    private static String getFileName(String urlFile) {
+        String fileName;
+        int indexFileName = urlFile.lastIndexOf('\\') + 1;
+        fileName = urlFile.substring(indexFileName);
+        return fileName;
     }
 
     public static void main(String[] args) {

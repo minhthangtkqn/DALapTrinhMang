@@ -22,16 +22,9 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.application.Platform;
 import javafx.stage.WindowEvent;
-import static javafx.application.Application.launch;
 import javafx.beans.value.ObservableValue;
 import javafx.stage.FileChooser;
 import model.bo.CheckLoginBO;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
 
 /**
@@ -122,6 +115,7 @@ public class TestIMAP extends Application {
     FileChooser fileChooser = new FileChooser();
     ArrayList<Button> deleteFileButtons = new ArrayList<>();
     ArrayList<TextField> linkFiles = new ArrayList<>();
+    ArrayList<File> attachFiles = new ArrayList<>();
 
     /**
      * set up elements in Login form
@@ -267,14 +261,34 @@ public class TestIMAP extends Application {
 
     private void composerFormAction() {
         sendButton.setOnAction((ActionEvent event) -> {
-            //TODO code here
-            ArrayList<String> to = getArrayReceiver(toTextField);
+            try {
+                //TODO code here
+                ArrayList<String> to = getArrayReceiver(toTextField);
 
-            SendEmail sendEmail = new SendEmail();
-            String sendEmailResult = sendEmail.send(to, preferences.get("username", ""), preferences.get("password", ""), newMailContent.getText(), newMailSubjectTextField.getText());
-            statusSendMailLabel.setText("STATUS: " + sendEmailResult);
-            clearComposerForm();
-            composerStage.close();
+                SendEmail sendEmail = new SendEmail();
+                System.out.println("1");
+                //gửi mail và trả về kết quả
+                boolean sendEmailResult = sendEmail.send(to, preferences.get("username", ""),
+                        preferences.get("password", ""), newMailSubjectTextField.getText(),
+                        newMailContent.getText(), attachFiles);
+                System.out.println("Result: " + sendEmailResult);
+                if (sendEmailResult) {
+                    //trường hợp gửi mail thành công
+                    statusSendMailLabel.setText("STATUS: Gửi mail thành công (^_^)!");
+
+                    //xóa màn hình sau khi gửi xong mail
+                    clearComposerForm();
+
+                    //xóa danh sách file đính kèm sau khi gửi xong mail
+                    attachFiles = new ArrayList<>();
+                    composerStage.close();
+                } else {
+                    //thông báo gửi mail thất bại
+                    statusSendMailLabel.setText("STATUS: Gửi mail thất bại (-_-\")!");
+                }
+            } catch (Exception ex) {
+                System.out.println(ex);
+            }
         });
 
         composerStage.setOnCloseRequest((WindowEvent event) -> {
@@ -294,7 +308,10 @@ public class TestIMAP extends Application {
 
     private void showFileOpened() {
         File file = fileChooser.showOpenDialog(primaryStage);
-        if (file != null) {
+        if (file != null && isNotChoseFile(file)) {
+            //them file duoc chon vao danh sach file dinh kem
+            attachFiles.add(file);
+
             //thêm tên file và button xóa file vào attachPane
             linkFiles.add(new TextField(file.getAbsolutePath()));
             linkFiles.get(linkFiles.size() - 1).setDisable(true);
@@ -302,18 +319,39 @@ public class TestIMAP extends Application {
             deleteFileButtons.add(new Button("X" + deleteFileButtons.size()));
             attachPane.getChildren().add(deleteFileButtons.get(deleteFileButtons.size() - 1));
 
+            /**
+             * tạo một đối tượng để kiểm tra khi bấm xóa nếu truyên vị trí là
+             * (size - 1) như ở trên thì khi xóa sẽ xóa nhầm file cuối cùng
+             */
             Button btnChoose = deleteFileButtons.get(deleteFileButtons.size() - 1);
 
+            //set sự kiện khi click button xóa
             deleteFileButtons.get(deleteFileButtons.size() - 1).setOnAction((ActionEvent event) -> {
+                //lấy thứ tự của file trong danh sách để xóa
                 int deleteIndex = deleteFileButtons.lastIndexOf(btnChoose);
 
+                //remove textfield hiển thị và button xóa file khỏi màn hình
                 attachPane.getChildren().remove(deleteFileButtons.get(deleteIndex));
                 attachPane.getChildren().remove(linkFiles.get(deleteIndex));
 
+                //sau đó xóa luôn khỏi danh sách
                 deleteFileButtons.remove(deleteIndex);
                 linkFiles.remove(deleteIndex);
+
+                //xóa file khỏi danh sách file đính kèm
+                attachFiles.remove(file);
             });
         }
+    }
+
+    private boolean isNotChoseFile(File file) {
+        //kiểm tra file này đã được chọn hay chưa
+        for (File f : attachFiles) {
+            if (f.equals(file)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void clearComposerForm() {

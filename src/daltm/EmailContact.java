@@ -10,17 +10,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javax.mail.Address;
-import javax.mail.BodyPart;
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Part;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Store;
+import javax.mail.*;
 import javax.mail.internet.MimeMultipart;
 import model.bean.Mail;
 
@@ -105,9 +95,9 @@ public class EmailContact {
             emailFolder.close(false);
             store.close();
         } catch (MessagingException | IOException ex) {
-            Logger.getLogger(Email_Login.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TestIMAP.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
-            Logger.getLogger(Email_Login.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(TestIMAP.class.getName()).log(Level.SEVERE, null, ex);
         }
         return mails;
     }
