@@ -40,6 +40,7 @@ public class TestIMAP extends Application {
     ObservableList mailsList;
 
     private Stage primaryStage = new Stage();
+    private Stage aboutStage = null;
 
     /**
      * Store username and password in Preference
@@ -73,6 +74,7 @@ public class TestIMAP extends Application {
     private MenuItem composeMailItem = new MenuItem("Compose");
     private MenuItem logoutItem = new MenuItem("Logout");
     private MenuItem exitItem = new MenuItem("Exit");
+    private MenuItem aboutItem = new MenuItem("About...");
 
     private VBox foldersPane = new VBox();
     private ListView mailBoxFoldersListView = new ListView();
@@ -90,7 +92,7 @@ public class TestIMAP extends Application {
     private Button forwardMailButton = new Button("FORWARD");
 
     /**
-     * Elements Compose New Mail
+     * Elements Compose New Mail form
      */
     private Stage composerStage = new Stage();
     private Scene composerScene;
@@ -177,7 +179,9 @@ public class TestIMAP extends Application {
         Menu menuOptions = new Menu("Options");
         Menu menuHelp = new Menu("Help");
 
+        //add items to menu
         menuFile.getItems().addAll(composeMailItem, logoutItem, exitItem);
+        menuHelp.getItems().addAll(aboutItem);
 
         mailBoxMenuBar.getMenus().addAll(menuFile, menuOptions, menuHelp);
         mailBoxMenuBar.prefWidthProperty().bind(primaryStage.widthProperty());
@@ -188,7 +192,7 @@ public class TestIMAP extends Application {
         mailBoxFoldersListView.prefHeightProperty().bind(primaryStage.heightProperty());
 
         //MAIL LISTVIEW
-        ObservableList mails = FXCollections.observableArrayList("MAIL 1", "MAIL 2", "MAIL 3");
+        ObservableList mails = FXCollections.observableArrayList("LOADING ...", "MAIL 1", "MAIL 2");
         mailsListView.setItems(mails);
         mailsListView.prefHeightProperty().bind(primaryStage.heightProperty());
 
@@ -265,10 +269,9 @@ public class TestIMAP extends Application {
                 //TODO code here
                 ArrayList<String> to = getArrayReceiver(toTextField);
 
-                SendEmail sendEmail = new SendEmail();
                 System.out.println("1");
                 //gửi mail và trả về kết quả
-                boolean sendEmailResult = sendEmail.send(to, preferences.get("username", ""),
+                boolean sendEmailResult = mail.send(to, preferences.get("username", ""),
                         preferences.get("password", ""), newMailSubjectTextField.getText(),
                         newMailContent.getText(), attachFiles);
                 System.out.println("Result: " + sendEmailResult);
@@ -446,6 +449,11 @@ public class TestIMAP extends Application {
             primaryStage.setResizable(false);
             primaryStage.show();
         });
+
+        aboutItem.setOnAction((ActionEvent event) -> {
+            openAboutForm();
+        });
+
         composeMailItem.setOnAction((ActionEvent event) -> {
             openComposerForm();
         });
@@ -453,6 +461,15 @@ public class TestIMAP extends Application {
         newMailButton.setOnAction((ActionEvent event) -> {
             openComposerForm();
         });
+    }
+
+    private void openAboutForm() {
+        if (aboutStage == null) {
+            aboutStage = new AboutWindow().initAboutWindow();
+            aboutStage.showAndWait();
+        } else {
+            aboutStage.showAndWait();
+        }
     }
 
     private void openComposerForm() {
