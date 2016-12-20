@@ -26,18 +26,26 @@ import javafx.beans.value.ObservableValue;
 import javafx.stage.FileChooser;
 import model.bo.CheckLoginBO;
 import static javafx.application.Application.launch;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
+import javafx.util.Callback;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
 
 /**
  *
  * @author TLDs
  */
-public class TestIMAP extends Application {
+public class GmailClient extends Application {
 
-    private final Font FONT_SUBJECT = new Font("Arial", 20);
-    private final Font FONT_LISTVIEW = new Font("Arial", 20);
+    private final Font BIG_FONT = new Font("Arial", 20);
+    private final Font MEDIUM_FONT = new Font("Arial", 17);
+    private final Font SMALL_FONT = new Font("Arial", 14);
 
-    EmailContact mail;
-    ObservableList mailsList;
+    //we use mail object to run methods send or receive mails from server
+    private EmailContact mail;
+    private ObservableList mailsList;
 
     private Stage primaryStage = new Stage();
     private Stage aboutStage = null;
@@ -53,7 +61,7 @@ public class TestIMAP extends Application {
     private GridPane loginPane = new GridPane();
     private Scene loginScene;
 
-    private Label welcomeLabel = new Label("WELCOME TO DEMO EMAIL");
+    private Label welcomeLabel = new Label("WELCOME TO DEMO GMAIL CLIENT");
 
     private TextField usernameTextField = new TextField();
     private PasswordField passwordField = new PasswordField();
@@ -77,7 +85,7 @@ public class TestIMAP extends Application {
     private MenuItem aboutItem = new MenuItem("About...");
 
     private VBox foldersPane = new VBox();
-    private ListView mailBoxFoldersListView = new ListView();
+    private ListView<String> mailBoxFoldersListView = new ListView();
 
     private VBox mailsPane = new VBox();
     private ListView<Mail> mailsListView = new ListView();
@@ -85,6 +93,7 @@ public class TestIMAP extends Application {
     private VBox mailContentPane = new VBox();
     private HBox mailFuncButtonPane = new HBox();
     private Label subjectLabel = new Label("SUBJECT: ");
+    private Label senderLabel = new Label("FROM: ");
     private TextArea mailContentTextArea = new TextArea("");
 
     private Button newMailButton = new Button("NEW");
@@ -101,23 +110,23 @@ public class TestIMAP extends Application {
     private FlowPane attachPane = new FlowPane();
     private GridPane buttonsPane = new GridPane();
 
-    Label toLabel = new Label("TO: ");
-    Label newMailSubjectLabel = new Label("SUBJECT: ");
-    Label statusSendMailLabel = new Label("STATUS: ");
+    private Label toLabel = new Label("TO: ");
+    private Label newMailSubjectLabel = new Label("SUBJECT: ");
+    private Label statusSendMailLabel = new Label("STATUS: ");
 
-    TextField toTextField = new TextField();
-    TextField newMailSubjectTextField = new TextField();
+    private TextField toTextField = new TextField();
+    private TextField newMailSubjectTextField = new TextField();
 
-    TextArea newMailContent = new TextArea();
+    private TextArea newMailContent = new TextArea();
 
-    Button sendButton = new Button("SEND");
-    Button recomposeButton = new Button("RE-COMPOSE");
-    Button attachFileButton = new Button("ATTACH FILE");
+    private Button sendButton = new Button("SEND");
+    private Button recomposeButton = new Button("RE-COMPOSE");
+    private Button attachFileButton = new Button("ATTACH FILE");
 
-    FileChooser fileChooser = new FileChooser();
-    ArrayList<Button> deleteFileButtons = new ArrayList<>();
-    ArrayList<TextField> linkFiles = new ArrayList<>();
-    ArrayList<File> attachFiles = new ArrayList<>();
+    private FileChooser fileChooser = new FileChooser();
+    private ArrayList<Button> deleteFileButtons = new ArrayList<>();
+    private ArrayList<TextField> linkFiles = new ArrayList<>();
+    private ArrayList<File> attachFiles = new ArrayList<>();
 
     /**
      * set up elements in Login form
@@ -126,7 +135,7 @@ public class TestIMAP extends Application {
         preferences = Preferences.userRoot().node(this.getClass().getName());
         String tmpString = preferences.get("username", "");
 
-        welcomeLabel.setFont(FONT_SUBJECT);
+        welcomeLabel.setFont(BIG_FONT);
 
         usernameTextField.setPromptText("USERNAME");
         usernameTextField.setPrefWidth(200);
@@ -187,8 +196,7 @@ public class TestIMAP extends Application {
         mailBoxMenuBar.prefWidthProperty().bind(primaryStage.widthProperty());
 
         //FOLDER LISTVIEW
-        ObservableList folders = FXCollections.observableArrayList("INBOX", "SENT", "TRASH", "ALL");
-        mailBoxFoldersListView.setItems(folders);
+        initFolderListView();
         mailBoxFoldersListView.prefHeightProperty().bind(primaryStage.heightProperty());
 
         //MAIL LISTVIEW
@@ -211,12 +219,15 @@ public class TestIMAP extends Application {
         mailFuncButtonPane.setSpacing(20);
 
         mailContentTextArea.setWrapText(true);
+        mailContentTextArea.setFont(SMALL_FONT);
+        mailContentTextArea.setEditable(false);
         mailContentTextArea.prefWidthProperty().bind(primaryStage.widthProperty());
 
-        subjectLabel.setFont(FONT_SUBJECT);
+        subjectLabel.setFont(BIG_FONT);
+        senderLabel.setFont(BIG_FONT);
 
         //ADD CONTENT ELEMENTS TO VBOX
-        mailContentPane.getChildren().addAll(mailFuncButtonPane, subjectLabel, mailContentTextArea);
+        mailContentPane.getChildren().addAll(mailFuncButtonPane, subjectLabel, senderLabel, mailContentTextArea);
         VBox.setVgrow(mailContentTextArea, Priority.ALWAYS);
         mailContentPane.setSpacing(5);
 
@@ -393,7 +404,7 @@ public class TestIMAP extends Application {
 
         if (CheckLoginBO.checkLogin(username, password)) {
             /**
-             * save username and password
+             * save username and password to Preferences
              */
             if (keepSignInCheckBox.isSelected()) {
                 preferences.put("username", usernameTextField.getText());
@@ -415,32 +426,108 @@ public class TestIMAP extends Application {
         }
     }
 
+    private void initFolderListView() {
+        ObservableList<String> folders = FXCollections.observableArrayList("Inbox", "Draft", "Important", "Sent", "Spam", "All");
+        mailBoxFoldersListView.setItems(folders);
+        mailBoxFoldersListView.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
+            @Override
+            public ListCell<String> call(ListView<String> param) {
+                return new ListCell<String>() {
+                    private HBox hBox = new HBox();
+                    private Text folderName = new Text();
+
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (item != null) {
+                            folderName.setFont(BIG_FONT);
+                            folderName.setText(item);
+
+                            hBox.getChildren().addAll(folderName);
+                            hBox.setSpacing(5);
+                            setGraphic(hBox);
+                        }
+                    }
+                };
+            }
+        });
+    }
+
     private void getMailsToListView() {
+
         //lấy mail list mail từ emailContact
-        ArrayList<Mail> getMails = mail.getMails(preferences.get("username", ""), preferences.get("password", ""));
+        ArrayList<Mail> getMails = mail.getMails(preferences.get("username", ""), preferences.get("password", ""), "inbox");
         mailsList = FXCollections.observableArrayList();
 
         for (Mail ml : getMails) {
-//            Platform.runLater(() -> mailsList.add(ml));??????????
             mailsList.add(ml);
         }
 
+        //set up default mail show first
         Mail firstMail = getMails.get(0);
         subjectLabel.setText("SUBJECT: " + firstMail.getSubject());
+        senderLabel.setText("FROM:     " + firstMail.getFrom());
         mailContentTextArea.setText(firstMail.getContent());
 
         mailsListView.setItems(mailsList);
+
+        //thiết kế lại giao diện cho list view
+        mailsListView.setCellFactory(new Callback<ListView<Mail>, ListCell<Mail>>() {
+            @Override
+            public ListCell<Mail> call(ListView<Mail> param) {
+                return new CustomMailListView();
+            }
+        });
+
         mailFormAction();
+    }
+
+    class CustomMailListView extends ListCell<Mail> {
+
+        private Text from;
+        private Text subject;
+        private VBox vBox;
+
+        public CustomMailListView() {
+            super();
+
+            from = new Text();
+            from.setFont(BIG_FONT);
+
+            subject = new Text();
+            subject.setFont(MEDIUM_FONT);
+            subject.setFill(Color.GRAY);
+
+            vBox = new VBox();
+            vBox.getChildren().addAll(from, subject);
+
+//            setText(null);
+        }
+
+        @Override
+        protected void updateItem(Mail item, boolean empty) {
+            super.updateItem(item, empty); //To change body of generated methods, choose Tools | Templates.
+//            setEditable(false);
+
+            if (item != null) {
+                from.setText(item.getFrom());
+                subject.setText(item.getSubject());
+                setGraphic(vBox);
+            } else {
+                setGraphic(null);
+            }
+        }
     }
 
     private void mailFormAction() {
         mailsListView.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Mail> observable, Mail oldValue, Mail newValue) -> {
+            System.out.println("SUBJECT: " + newValue.getSubject());
+            System.out.println("FROM:    " + newValue.getFrom());
+            System.out.println("--------------------------------");
             subjectLabel.setText("SUBJECT: " + newValue.getSubject());
-            String content = "";
-//            content += "\tFROM: " + newValue.getFrom();
+            senderLabel.setText("FROM:    " + newValue.getFrom());
             mailContentTextArea.setText(newValue.getContent());
         });
-
         exitItem.setOnAction((ActionEvent event) -> {
             System.exit(0);
         });
@@ -449,15 +536,12 @@ public class TestIMAP extends Application {
             primaryStage.setResizable(false);
             primaryStage.show();
         });
-
         aboutItem.setOnAction((ActionEvent event) -> {
             openAboutForm();
         });
-
         composeMailItem.setOnAction((ActionEvent event) -> {
             openComposerForm();
         });
-
         newMailButton.setOnAction((ActionEvent event) -> {
             openComposerForm();
         });
@@ -479,7 +563,7 @@ public class TestIMAP extends Application {
     }
 
     private void initGUI() {
-        primaryStage.setTitle("TEST IMAP!");
+        primaryStage.setTitle("DEMO GMAIL CLIENT!");
         primaryStage.getIcons().add(new Image(getClass().getResource("mail.png").toString()));
 
         primaryStage.setScene(loginScene);
@@ -493,19 +577,11 @@ public class TestIMAP extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-
         this.primaryStage = primaryStage;
-
         setUpLogin();
         setUpMailBox();
         setUpComposer();
-
         initGUI();
-
-        //auto login
-//        if (usernameTextField.getText().compareTo("") != 0) {
-//            login(primaryStage);
-//        }
     }
 
     public static void main(String[] args) {

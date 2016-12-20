@@ -30,16 +30,24 @@ public class EmailContact {
     Properties properties;
     static Session session;
     static Store store;
-    String host = "imap.gmail.com";
+    String hostGetMail = "imap.gmail.com";
+    String hostSendMail = "smtp.gmail.com";
     static String username, password;
 
     public EmailContact() {
         properties = new Properties();
 
-        properties.put("mail.imap.host", host);
+        //set up imap
+        properties.put("mail.imap.host", hostGetMail);
         properties.put("mail.imap.port", "993");
         properties.put("mail.imap.starttls.enable", "true");
 
+        //set up smtp
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.starttls.enable", "true");
+        properties.put("mail.smtp.host", hostSendMail);
+        properties.put("mail.smtp.port", "587");
+        
     }
 
     public boolean connectMail(String user, String password) {
@@ -53,7 +61,7 @@ public class EmailContact {
             });
 
             store = session.getStore("imaps");
-            store.connect(host, user, password);
+            store.connect(hostGetMail, user, password);
 
         } catch (Exception ex) {
             System.out.println(ex);
@@ -66,13 +74,14 @@ public class EmailContact {
      *
      * @param user
      * @param pass
-     * @return
+     * @param folderName
+     * @return ArrayList<Mail>
      */
-    public ArrayList<Mail> getMails(String user, String pass) {
+    public ArrayList<Mail> getMails(String user, String pass, String folderName) {
         ArrayList<Mail> mails = new ArrayList<>();
 
         try {
-            connectMail(user, pass);//TODO remove
+            connectMail(user, pass);
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -95,16 +104,16 @@ public class EmailContact {
                 System.out.println("To: " + getTo(message));
                 System.out.println("Text: " + getMailContent(message));
 
-                mails.add(new Mail(message.getSubject(), getFrom(message), getMailContent(message)));
+                mails.add(new Mail(message.getSubject(), getMailContent(message), getFrom(message), getTo(message)));
             }
 
             //close the store and folder objects
             emailFolder.close(false);
             store.close();
         } catch (MessagingException | IOException ex) {
-            Logger.getLogger(TestIMAP.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(GmailClient.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
-            Logger.getLogger(TestIMAP.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(GmailClient.class.getName()).log(Level.SEVERE, null, ex);
         }
         return mails;
     }
@@ -173,25 +182,14 @@ public class EmailContact {
         }
         return result;
     }
-    
+
     public boolean send(ArrayList<String> to, String from, String password,
             String messageSubject, String messageContent, ArrayList<File> attachFiles) {
-        // Assuming you are sending email from localhost
-        String host = "smtp.gmail.com";
-
-        // Get system properties
-        Properties properties = new Properties();
-
-        // Setup mail server
-        properties.put("mail.smtp.auth", "true");
-        properties.put("mail.smtp.starttls.enable", "true");
-        properties.put("mail.smtp.host", host);
-        properties.put("mail.smtp.port", "587");
 
         System.out.println("Setup done!");
 
         // Get the default Session object.
-        Session session = Session.getInstance(properties,
+        session = Session.getInstance(properties,
                 new javax.mail.Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {

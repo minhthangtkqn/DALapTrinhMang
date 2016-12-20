@@ -17,7 +17,7 @@ import javax.activation.FileDataSource;
 import javax.mail.*;
 import javax.mail.internet.*;
 
-public class SendEmail {
+public class XXXSendEmailXXXX {
 
     public boolean send(ArrayList<String> to, String from, String password,
             String messageSubject, String messageContent, ArrayList<File> attachFiles) {
@@ -104,16 +104,16 @@ public class SendEmail {
         return fileName;
     }
 
-    public static void main(String[] args) {
-//        ArrayList<String> arrayReceiver = new ArrayList<>();
-//        arrayReceiver.add("hoangminhthang21051995@gmail.com");
-//        arrayReceiver.add("thanghoangbks2014@gmail.com");
+//    public static void main(String[] args) {
+////        ArrayList<String> arrayReceiver = new ArrayList<>();
+////        arrayReceiver.add("hoangminhthang21051995@gmail.com");
+////        arrayReceiver.add("thanghoangbks2014@gmail.com");
+////
+////        XXXSendEmailXXXX sendEmail = new XXXSendEmailXXXX();
+////        sendEmail.send(arrayReceiver, "hoangminhthang21051995@gmail.com", "toilathang", "Noi dung Email", "Tieu de");
 //
-//        SendEmail sendEmail = new SendEmail();
-//        sendEmail.send(arrayReceiver, "hoangminhthang21051995@gmail.com", "toilathang", "Noi dung Email", "Tieu de");
-
-        String abc = "abhs bhsadb adb jhsadb j   asbdj";
-        System.out.println(abc.replaceAll("\\s+", ""));
-        System.out.println("s");
-    }
+//        String abc = "abhs bhsadb adb jhsadb j   asbdj";
+//        System.out.println(abc.replaceAll("\\s+", ""));
+//        System.out.println("s");
+//    }
 }

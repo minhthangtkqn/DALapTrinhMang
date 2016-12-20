@@ -11,12 +11,21 @@ package model.bean;
  */
 public class Mail {
 
-    private String subject, from, content;
+    private String subject, from, to, content;
 
-    public Mail(String subject, String from, String content) {
+    public Mail(String subject, String content, String from, String to) {
         this.subject = subject;
         this.content = content;
         this.from = from;
+        this.to = to;
+    }
+
+    public String getTo() {
+        return to;
+    }
+
+    public void setTo(String to) {
+        this.to = to;
     }
 
     public String getSubject() {
