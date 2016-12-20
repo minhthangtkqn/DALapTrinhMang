@@ -32,12 +32,16 @@ import javafx.util.Callback;
 import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
 
 /**
  *
  * @author TLDs
  */
-public class GmailClient extends Application {
+public class XXXGmailClientXXX extends Application {
 
     private final Font BIG_FONT = new Font("Arial", 20);
     private final Font MEDIUM_FONT = new Font("Arial", 17);

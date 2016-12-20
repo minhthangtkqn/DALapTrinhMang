@@ -47,7 +47,7 @@ public class EmailContact {
         properties.put("mail.smtp.starttls.enable", "true");
         properties.put("mail.smtp.host", hostSendMail);
         properties.put("mail.smtp.port", "587");
-        
+
     }
 
     public boolean connectMail(String user, String password) {
@@ -87,33 +87,40 @@ public class EmailContact {
         }
 
         try {
+            Folder[] fd = store.getDefaultFolder().list();
+            for (Folder f : fd) {
+                System.out.println("FOLDERS's NAME: " + f.getName());
+            }
 
-            Folder emailFolder = store.getFolder("inbox");
+            Folder emailFolder = store.getFolder(folderName);
             emailFolder.open(Folder.READ_ONLY);
 //            emailFolder.open(Folder.HOLDS_MESSAGES);
 
             Message[] messages = emailFolder.getMessages();
             System.out.println("messages.length---" + messages.length);
+            if (messages.length == 0) {
+                mails = null;
+            } else {
+                for (int i = 0, n = messages.length; i < n; i++) {
+                    Message message = messages[i];
+                    System.out.println("---------------------------------");
+                    System.out.println("Email Number " + (i + 1));
+                    System.out.println("Subject: " + message.getSubject());
+                    System.out.println("From: " + getFrom(message));
+                    System.out.println("To: " + getTo(message));
+                    System.out.println("Text: " + getMailContent(message));
 
-            for (int i = 0, n = messages.length; i < n; i++) {
-                Message message = messages[i];
-                System.out.println("---------------------------------");
-                System.out.println("Email Number " + (i + 1));
-                System.out.println("Subject: " + message.getSubject());
-                System.out.println("From: " + getFrom(message));
-                System.out.println("To: " + getTo(message));
-                System.out.println("Text: " + getMailContent(message));
-
-                mails.add(new Mail(message.getSubject(), getMailContent(message), getFrom(message), getTo(message)));
+                    mails.add(new Mail(message.getSubject(), getMailContent(message), getFrom(message), getTo(message)));
+                }
             }
 
             //close the store and folder objects
             emailFolder.close(false);
             store.close();
         } catch (MessagingException | IOException ex) {
-            Logger.getLogger(GmailClient.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(XXXGmailClientXXX.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
-            Logger.getLogger(GmailClient.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(XXXGmailClientXXX.class.getName()).log(Level.SEVERE, null, ex);
         }
         return mails;
     }

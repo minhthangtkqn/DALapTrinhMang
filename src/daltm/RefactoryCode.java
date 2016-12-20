@@ -40,6 +40,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
 import static javafx.application.Application.launch;
+import javafx.scene.input.MouseEvent;
 import model.bean.User;
 
 /**
@@ -80,7 +81,7 @@ public class RefactoryCode extends Application {
     private Label passwordLabel = new Label("Password: ");
     private Label statusLogin = new Label("");
 
-    private Button signinButton = new Button("SIGN IN");
+    private Button signInButton = new Button("SIGN IN");
     private CheckBox keepSignInCheckBox = new CheckBox("Keep me Sign in!");
 
     /**
@@ -96,7 +97,7 @@ public class RefactoryCode extends Application {
     private MenuItem aboutItem = new MenuItem("About...");
 
     private VBox foldersPane = new VBox();
-    private ListView<String> mailBoxFoldersListView = new ListView();
+    private ListView<String> foldersListView = new ListView();
 
     private VBox mailsPane = new VBox();
     private ListView<Mail> mailsListView = new ListView();
@@ -156,7 +157,7 @@ public class RefactoryCode extends Application {
         passwordField.setPrefWidth(200);
         passwordField.setText(password);
 
-        signinButton.prefWidthProperty().bind(primaryStage.widthProperty());
+        signInButton.prefWidthProperty().bind(primaryStage.widthProperty());
 
         if (preferences.getBoolean("keepSignIn", false)) {
             keepSignInCheckBox.setSelected(true);
@@ -172,7 +173,7 @@ public class RefactoryCode extends Application {
         loginPane.add(passwordLabel, 0, 2);
         loginPane.add(usernameTextField, 1, 1);
         loginPane.add(passwordField, 1, 2);
-        loginPane.add(signinButton, 0, 3, 2, 1);
+        loginPane.add(signInButton, 0, 3, 2, 1);
         loginPane.add(keepSignInCheckBox, 0, 4, 2, 1);
         loginPane.add(statusLogin, 0, 5, 2, 1);
 
@@ -201,7 +202,7 @@ public class RefactoryCode extends Application {
 
         //FOLDER LISTVIEW
         initFolderListView();
-        mailBoxFoldersListView.prefHeightProperty().bind(primaryStage.heightProperty());
+        foldersListView.prefHeightProperty().bind(primaryStage.heightProperty());
 
         //MAIL LISTVIEW
         ObservableList mails = FXCollections.observableArrayList("LOADING ...");
@@ -209,8 +210,8 @@ public class RefactoryCode extends Application {
         mailsListView.prefHeightProperty().bind(primaryStage.heightProperty());
 
         //ADD LISTVIEWS TO PANES
-        foldersPane.getChildren().addAll(mailBoxFoldersListView);
-        VBox.setVgrow(mailBoxFoldersListView, Priority.ALWAYS);
+        foldersPane.getChildren().addAll(foldersListView);
+        VBox.setVgrow(foldersListView, Priority.ALWAYS);
         foldersPane.setPrefWidth(150);
         foldersPane.setMinWidth(150);
         mailsPane.getChildren().addAll(mailsListView);
@@ -247,7 +248,6 @@ public class RefactoryCode extends Application {
      * set up elements in Composer
      */
     private void setUpComposer() {
-
         toTextField.setPrefWidth(430);
         newMailSubjectTextField.setPrefWidth(430);
 
@@ -333,7 +333,7 @@ public class RefactoryCode extends Application {
             linkFiles.add(new TextField(file.getAbsolutePath()));
             linkFiles.get(linkFiles.size() - 1).setDisable(true);
             attachPane.getChildren().add(linkFiles.get(linkFiles.size() - 1));
-            deleteFileButtons.add(new Button("X" + deleteFileButtons.size()));
+            deleteFileButtons.add(new Button("X"));
             attachPane.getChildren().add(deleteFileButtons.get(deleteFileButtons.size() - 1));
 
             /**
@@ -394,45 +394,51 @@ public class RefactoryCode extends Application {
      * SET ACTION TO BUTTONS
      */
     private void loginFormAction() {
-        signinButton.setOnAction((ActionEvent event) -> {
+        signInButton.setOnAction((ActionEvent event) -> {
+            signInButton.setDisable(true);
             login();
         });
     }
 
     private void login() {
-        String username = usernameTextField.getText();
-        String password = passwordField.getText();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String username = usernameTextField.getText();
+                String password = passwordField.getText();
 
-        if (CheckLoginBO.checkLogin(username, password)) {
-            /**
-             * save username and password to Preferences
-             */
-            user = new User(username, password, keepSignInCheckBox.isSelected());
+                if (CheckLoginBO.checkLogin(username, password)) {
+                    /**
+                     * save username and password to Preferences
+                     */
+                    user = new User(username, password, keepSignInCheckBox.isSelected());
 
-            preferences.putBoolean("loggedIn", true);
+                    preferences.putBoolean("loggedIn", true);
 
-            if (keepSignInCheckBox.isSelected()) {
-                preferences.put("username", usernameTextField.getText());
-                preferences.put("password", passwordField.getText());
-                preferences.putBoolean("keepSignIn", true);
-            } else {
-                preferences.put("username", "");
-                preferences.put("password", "");
-                preferences.putBoolean("keepSignIn", false);
+                    if (keepSignInCheckBox.isSelected()) {
+                        preferences.put("username", username);
+                        preferences.put("password", password);
+                        preferences.putBoolean("keepSignIn", true);
+                    } else {
+                        preferences.put("username", "");
+                        preferences.put("password", "");
+                        preferences.putBoolean("keepSignIn", false);
+                    }
+                    statusLogin.setText("ĐĂNG NHẬP THÀNH CÔNG. ĐANG TẢI THÔNG TIN");
+                    Platform.runLater(() -> MailBoxGUI());
+                } else {
+                    System.out.println("Dang nhap that bai!");
+                    statusLogin.setText("ĐĂNG NHẬP THẤT BẠI!");
+                    signInButton.setDisable(false);
+                }
             }
-            statusLogin.setText("ĐĂNG NHẬP THÀNH CÔNG. ĐANG TẢI THÔNG TIN");
-            MailBoxGUI();
-
-        } else {
-            System.out.println("Dang nhap that bai!");
-            statusLogin.setText("ĐĂNG NHẬP THẤT BẠI!");
-        }
+        }).start();
     }
 
     private void initFolderListView() {
-        ObservableList<String> folders = FXCollections.observableArrayList("Inbox", "Draft", "Important", "Sent", "Spam", "All");
-        mailBoxFoldersListView.setItems(folders);
-        mailBoxFoldersListView.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
+        ObservableList<String> folders = FXCollections.observableArrayList("Inbox", "Draft", "Important", "Sent", "Spam", "Trash", "All");
+        foldersListView.setItems(folders);
+        foldersListView.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
             @Override
             public ListCell<String> call(ListView<String> param) {
                 return new ListCell<String>() {
@@ -498,6 +504,50 @@ public class RefactoryCode extends Application {
             senderLabel.setText("FROM:    " + newValue.getFrom());
             mailContentTextArea.setText(newValue.getContent());
         });
+
+        foldersListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                String folder = "";
+
+                switch (foldersListView.getSelectionModel().getSelectedItem()) {
+                    case "Inbox":
+                        folder = "inbox";
+                        break;
+                    case "Draft":
+                        folder = "[Gmail]/Drafts";
+                        break;
+                    case "Important":
+                        folder = "[Gmail]/Important";
+                        break;
+                    case "Sent":
+                        folder = "[Gmail]/Sent Mail";
+                        break;
+                    case "Spam":
+                        folder = "[Gmail]/Spam";
+                        break;
+                    case "Trash":
+                        folder = "[Gmail]/Trash";
+                        break;
+                    case "All":
+                        folder = "[Gmail]/All Mail";
+                        break;
+                }
+
+                loadMailFromFolder(folder);
+
+//"Inbox", "Draft", "Important", "Sent", "Spam", "Trash", "All"
+//[[Gmail]]
+// * [[Gmail]/All Mail]
+// * [[Gmail]/Bin]
+// * [[Gmail]/Drafts]
+// * [[Gmail]/Important]
+// * [[Gmail]/Sent Mail]
+// * [[Gmail]/Spam]
+// * [[Gmail]/Starred]
+            }
+        });
+
         exitItem.setOnAction((ActionEvent event) -> {
             System.exit(0);
         });
@@ -507,8 +557,10 @@ public class RefactoryCode extends Application {
             if (!preferences.getBoolean("keepSignIn", false)) {
                 passwordField.setText("");
             }
-
-            openLoginGUI();
+            statusLogin.setText("ĐĂNG XUẤT THÀNH CÔNG!");
+            signInButton.setDisable(false);
+            composerStage.close();
+            LoginGUI();
         });
         aboutItem.setOnAction((ActionEvent event) -> {
             openAboutGUI();
@@ -531,6 +583,8 @@ public class RefactoryCode extends Application {
     }
 
     private void openComposerGUI() {
+        composerStage.setTitle("DEMO GMAIL CLIENT!");
+        composerStage.getIcons().add(new Image(getClass().getResource("mail.png").toString()));
         composerStage.setScene(composerScene);
         composerStage.setResizable(false);
         composerStage.show();
@@ -552,7 +606,7 @@ public class RefactoryCode extends Application {
         //kiem tra da dang nhap chua
         if (!isLoggedInAndKeepSignIn()) {
             //neu chua dang nhap thi load giao dien Login
-            LoginGUI();
+            openLoginGUI();
         } else {
             //neu da dang nhap thi load giao dien MailBox
             MailBoxGUI();
@@ -575,11 +629,11 @@ public class RefactoryCode extends Application {
         openMailBoxGUI();
         user = new User(preferences.get("username", ""), preferences.get("password", ""), true);
         //threads get list mails
-        new Thread(() -> this.loadMailFromFolder("inbox")).start();
-
+        loadMailFromFolder("inbox");
     }
 
     private void LoginGUI() {
+//        setUpLogin();
         openLoginGUI();
     }
 
@@ -596,29 +650,38 @@ public class RefactoryCode extends Application {
     }
 
     private void loadMailFromFolder(String folderName) {
-        //lấy mail list mail từ emailContact
-        ArrayList<Mail> getMails = mail.getMails(user.getUsername(), user.getPassword(), folderName);
-        mailsList = FXCollections.observableArrayList();
-
-        for (Mail ml : getMails) {
-            mailsList.add(ml);
-        }
-
-        //set up default mail show first
-        Mail firstMail = getMails.get(0);
-        subjectLabel.setText("SUBJECT: " + firstMail.getSubject());
-        senderLabel.setText("FROM:     " + firstMail.getFrom());
-        mailContentTextArea.setText(firstMail.getContent());
-
-        mailsListView.setItems(mailsList);
-
-        //thiết kế lại giao diện cho list view
-        mailsListView.setCellFactory(new Callback<ListView<Mail>, ListCell<Mail>>() {
+        new Thread(new Runnable() {
             @Override
-            public ListCell<Mail> call(ListView<Mail> param) {
-                return new CustomMailListView();
+            public void run() {
+                //lấy mail list mail từ emailContact
+                ArrayList<Mail> getMails = mail.getMails(user.getUsername(), user.getPassword(), folderName);
+                if (getMails == null) {
+                    mailsListView.setItems(null);
+                } else {
+                    mailsList = FXCollections.observableArrayList();
+
+                    for (Mail ml : getMails) {
+                        mailsList.add(ml);
+                    }
+
+                    //set up default mail show first
+                    Mail firstMail = getMails.get(0);
+                    subjectLabel.setText("SUBJECT: " + firstMail.getSubject());
+                    senderLabel.setText("FROM:     " + firstMail.getFrom());
+                    mailContentTextArea.setText(firstMail.getContent());
+
+                    Platform.runLater(() -> mailsListView.setItems(mailsList));
+
+                    //thiết kế lại giao diện cho list view
+                    mailsListView.setCellFactory(new Callback<ListView<Mail>, ListCell<Mail>>() {
+                        @Override
+                        public ListCell<Mail> call(ListView<Mail> param) {
+                            return new CustomMailListView();
+                        }
+                    });
+                }
             }
-        });
+        }).start();
     }
 
     public static void main(String[] args) {
