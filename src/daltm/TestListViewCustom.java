@@ -31,10 +31,10 @@ public class TestListViewCustom extends Application {
     public void start(Stage primaryStage) throws Exception {
 
         ArrayList<Mail> mails = new ArrayList<>();
-        mails.add(new Mail("sj1", "content1", "form 1", "to 1"));
-        mails.add(new Mail("sj2", "content2", "form 2", "to 2"));
-        mails.add(new Mail("sj3", "content3", "form 3", "to 3"));
-        mails.add(new Mail("sj4", "content4", "form 4", "to 4"));
+        mails.add(new Mail("sj1", "", "content1", "form 1", "to 1"));
+        mails.add(new Mail("sj2", "", "content2", "form 2", "to 2"));
+        mails.add(new Mail("sj3", "", "content3", "form 3", "to 3"));
+        mails.add(new Mail("sj4", "", "content4", "form 4", "to 4"));
 
         ListView<Mail> list = new ListView<>();
         ObservableList<Mail> items = FXCollections.observableArrayList();
@@ -74,7 +74,6 @@ public class TestListViewCustom extends Application {
             vBox.getChildren().addAll(from, subject);
 
 //            setText(null);
-
         }
 
         @Override

@@ -87,10 +87,10 @@ public class EmailContact {
         }
 
         try {
-            Folder[] fd = store.getDefaultFolder().list();
-            for (Folder f : fd) {
-                System.out.println("FOLDERS's NAME: " + f.getName());
-            }
+//            Folder[] fd = store.getDefaultFolder().list();
+//            for (Folder f : fd) {
+//                System.out.println("FOLDERS's NAME: " + f.getName());
+//            }
 
             Folder emailFolder = store.getFolder(folderName);
             emailFolder.open(Folder.READ_ONLY);
@@ -106,11 +106,11 @@ public class EmailContact {
                     System.out.println("---------------------------------");
                     System.out.println("Email Number " + (i + 1));
                     System.out.println("Subject: " + message.getSubject());
+                    System.out.println("Date: " + message.getReceivedDate().toString());
                     System.out.println("From: " + getFrom(message));
-                    System.out.println("To: " + getTo(message));
-                    System.out.println("Text: " + getMailContent(message));
 
-                    mails.add(new Mail(message.getSubject(), getMailContent(message), getFrom(message), getTo(message)));
+                    mails.add(new Mail(message.getSubject(), message.getReceivedDate().toString(), getFrom(message), getTo(message), getMailContent(message)));
+//                    mails.add(new Mail(message.getSubject(), getFrom(message), message));
                 }
             }
 

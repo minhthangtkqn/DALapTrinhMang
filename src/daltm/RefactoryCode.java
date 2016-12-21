@@ -106,6 +106,7 @@ public class RefactoryCode extends Application {
     private HBox mailFuncButtonPane = new HBox();
     private Label subjectLabel = new Label("SUBJECT: ");
     private Label senderLabel = new Label("FROM: ");
+    private Label timeLabel = new Label("DATE: ");
     private TextArea mailContentTextArea = new TextArea("");
 
     private Button newMailButton = new Button("NEW");
@@ -184,7 +185,7 @@ public class RefactoryCode extends Application {
      * set up elements in Mail Box
      */
     private void setUpMailBox() {
-        mailBoxPane.setPadding(new Insets(5, 5, 5, 5));
+        mailBoxPane.setPadding(new Insets(0, 5, 5, 5));
         mailBoxPane.setHgap(5);
         mailBoxPane.setVgap(5);
 
@@ -230,15 +231,16 @@ public class RefactoryCode extends Application {
 
         subjectLabel.setFont(BIG_FONT);
         senderLabel.setFont(BIG_FONT);
+        timeLabel.setFont(BIG_FONT);
 
         //ADD CONTENT ELEMENTS TO VBOX
-        mailContentPane.getChildren().addAll(mailFuncButtonPane, subjectLabel, senderLabel, mailContentTextArea);
+        mailContentPane.getChildren().addAll(mailFuncButtonPane, subjectLabel, senderLabel, timeLabel, mailContentTextArea);
         VBox.setVgrow(mailContentTextArea, Priority.ALWAYS);
         mailContentPane.setSpacing(5);
 
         mailBoxPane.add(mailBoxMenuBar, 0, 0, 6, 1);
-        mailBoxPane.add(mailsPane, 1, 1, 1, 3);
-        mailBoxPane.add(foldersPane, 0, 1, 1, 3);
+        mailBoxPane.add(foldersPane, 0, 1, 1, 5);
+        mailBoxPane.add(mailsPane, 1, 1, 1, 5);
         mailBoxPane.add(mailContentPane, 2, 1, 4, 5);
 
         mailBoxScene = new Scene(mailBoxPane, 900, 500);
@@ -502,6 +504,7 @@ public class RefactoryCode extends Application {
             System.out.println("--------------------------------");
             subjectLabel.setText("SUBJECT: " + newValue.getSubject());
             senderLabel.setText("FROM:    " + newValue.getFrom());
+            timeLabel.setText("DATE:    " + newValue.getTime());
             mailContentTextArea.setText(newValue.getContent());
         });
 
@@ -633,7 +636,6 @@ public class RefactoryCode extends Application {
     }
 
     private void LoginGUI() {
-//        setUpLogin();
         openLoginGUI();
     }
 
@@ -664,13 +666,16 @@ public class RefactoryCode extends Application {
                         mailsList.add(ml);
                     }
 
-                    //set up default mail show first
-                    Mail firstMail = getMails.get(0);
-                    subjectLabel.setText("SUBJECT: " + firstMail.getSubject());
-                    senderLabel.setText("FROM:     " + firstMail.getFrom());
-                    mailContentTextArea.setText(firstMail.getContent());
-
                     Platform.runLater(() -> mailsListView.setItems(mailsList));
+
+                    Platform.runLater(() -> {
+                        //mail đầu tiên trong danh sách mặc định sẽ đc hiển thị
+                        Mail firstMail = getMails.get(0);
+                        subjectLabel.setText("SUBJECT:  " + firstMail.getSubject());
+                        senderLabel.setText("FROM:     " + firstMail.getFrom());
+                        timeLabel.setText("DATE:     " + firstMail.getTime());
+                        mailContentTextArea.setText(firstMail.getContent());
+                    });
 
                     //thiết kế lại giao diện cho list view
                     mailsListView.setCellFactory(new Callback<ListView<Mail>, ListCell<Mail>>() {
