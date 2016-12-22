@@ -46,7 +46,6 @@ public class AboutWindow {
 
     public Stage initAboutWindow() {
         setUpAboutWindow();
-
         return aboutStage;
     }
 

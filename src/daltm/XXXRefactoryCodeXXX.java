@@ -42,12 +42,13 @@ import javafx.util.Callback;
 import static javafx.application.Application.launch;
 import javafx.scene.input.MouseEvent;
 import model.bean.User;
+import static javafx.application.Application.launch;
 
 /**
  *
  * @author TLDs
  */
-public class RefactoryCode extends Application {
+public class XXXRefactoryCodeXXX extends Application {
 
     private final Font BIG_FONT = new Font("Arial", 20);
     private final Font MEDIUM_FONT = new Font("Arial", 17);
@@ -275,7 +276,7 @@ public class RefactoryCode extends Application {
         composerPane.setSpacing(10);
         VBox.setVgrow(newMailContent, Priority.ALWAYS);
 
-        composerScene = new Scene(composerPane, 500, 350);
+        composerScene = new Scene(composerPane, 700, 450);
 
     }
 
@@ -332,10 +333,14 @@ public class RefactoryCode extends Application {
             attachFiles.add(file);
 
             //thêm tên file và button xóa file vào attachPane
-            linkFiles.add(new TextField(file.getAbsolutePath()));
+            TextField filePathTextFile = new TextField(file.getAbsolutePath());
+            filePathTextFile.setPrefWidth(composerScene.getWidth() - 40);
+            linkFiles.add(filePathTextFile);
             linkFiles.get(linkFiles.size() - 1).setDisable(true);
             attachPane.getChildren().add(linkFiles.get(linkFiles.size() - 1));
-            deleteFileButtons.add(new Button("X"));
+            Button deleteFile = new Button("X");
+            deleteFile.setStyle("-fx-font-weight: bold;");
+            deleteFileButtons.add(deleteFile);
             attachPane.getChildren().add(deleteFileButtons.get(deleteFileButtons.size() - 1));
 
             /**
