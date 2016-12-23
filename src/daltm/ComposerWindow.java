@@ -7,6 +7,8 @@ package daltm;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.prefs.Preferences;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -26,14 +28,20 @@ public class ComposerWindow extends Stage {
     public static String username;
     private String password;
 
+    private Preferences preferences = Preferences.userRoot().node(this.getClass().getName());
+
     private EmailContact mail = new EmailContact();
 
     private Scene composerScene;
+    private StackPane root = new StackPane();
+    private FlowPane progressPane = new FlowPane();
     private VBox composerPane = new VBox();
     private HBox toPane = new HBox();
     private HBox subjectPane = new HBox();
     private FlowPane attachPane = new FlowPane();
     private GridPane buttonsPane = new GridPane();
+
+    private ProgressIndicator loading = new ProgressIndicator();
 
     private Label toLabel = new Label("TO: ");
     private Label subjectLabel = new Label("SUBJECT: ");
@@ -42,11 +50,12 @@ public class ComposerWindow extends Stage {
     private TextField toTextField = new TextField();
     private TextField subjectTextField = new TextField();
 
-    private TextArea newMailContent = new TextArea();
+    private TextArea mailContentTextArea = new TextArea();
 
     private Button sendButton = new Button("SEND");
-    private Button recomposeButton = new Button("RE-COMPOSE");
+    private Button recomposeButton = new Button("CLEAR CONTENT");
     private Button attachFileButton = new Button("ATTACH FILE");
+    private Button clearFileButton = new Button("REMOVE ALL FILE");
 
     private FileChooser fileChooser = new FileChooser();
     private ArrayList<Button> deleteFileButtons = new ArrayList<>();
@@ -61,6 +70,10 @@ public class ComposerWindow extends Stage {
     }
 
     private void setUpComposer() {
+        progressPane.getChildren().addAll(loading);
+        progressPane.setPadding(new Insets(1000));
+        progressPane.setVisible(false);
+
         toLabel.setPrefWidth(80);
         subjectLabel.setPrefWidth(80);
         toPane.getChildren().addAll(toLabel, toTextField);
@@ -68,22 +81,28 @@ public class ComposerWindow extends Stage {
         HBox.setHgrow(toTextField, Priority.ALWAYS);
         HBox.setHgrow(subjectTextField, Priority.ALWAYS);
 
+        mailContentTextArea.setText("\n" + preferences.get(username + "_signature", ""));
+
         sendButton.prefWidthProperty().bind(this.widthProperty());
         recomposeButton.prefWidthProperty().bind(this.widthProperty());
         attachFileButton.prefWidthProperty().bind(this.widthProperty());
+        clearFileButton.prefWidthProperty().bind(this.widthProperty());
 
-        buttonsPane.add(sendButton, 0, 0);
-        buttonsPane.add(recomposeButton, 1, 0);
-        buttonsPane.add(attachFileButton, 2, 0);
+        buttonsPane.add(attachFileButton, 0, 0);
+        buttonsPane.add(sendButton, 1, 0);
+        buttonsPane.add(clearFileButton, 0, 1);
+        buttonsPane.add(recomposeButton, 1, 1);
         buttonsPane.setHgap(5);
         buttonsPane.setVgap(5);
 
-        composerPane.getChildren().addAll(toPane, subjectPane, newMailContent, attachPane, buttonsPane, statusSendMailLabel);
+        composerPane.getChildren().addAll(toPane, subjectPane, mailContentTextArea, attachPane, buttonsPane, statusSendMailLabel);
         composerPane.setPadding(new Insets(5));
         composerPane.setSpacing(10);
-        VBox.setVgrow(newMailContent, Priority.ALWAYS);
+        VBox.setVgrow(mailContentTextArea, Priority.ALWAYS);
 
-        composerScene = new Scene(composerPane, COMPOSER_WIDTH, COMPOSER_HEIGHT);
+        root.getChildren().addAll(composerPane, progressPane);
+
+        composerScene = new Scene(root, COMPOSER_WIDTH, COMPOSER_HEIGHT);
 
         this.setScene(composerScene);
         this.setTitle("NEW EMAIL");
@@ -93,32 +112,47 @@ public class ComposerWindow extends Stage {
 
     private void composerFormAction() {
         sendButton.setOnAction((ActionEvent event) -> {
-            try {
-                ArrayList<String> to = getArrayReceiver(toTextField);
+            progressPane.setVisible(true);
+            composerPane.setDisable(true);
 
-                //gửi mail và trả về kết quả
-                boolean sendEmailResult = mail.send(to, username,
-                        password, subjectTextField.getText(),
-                        newMailContent.getText(), attachFiles);
-                System.out.println("Result: " + sendEmailResult);
-                if (sendEmailResult) {
-                    //trường hợp gửi mail thành công
-                    statusSendMailLabel.setText("STATUS: Gửi mail thành công (^_^)!");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        ArrayList<String> to = getArrayReceiver(toTextField);
 
-                    //xóa màn hình sau khi gửi xong mail
-                    clearComposerForm();
-                    clearAttachFiles();
+                        //gửi mail và trả về kết quả
+                        boolean sendEmailResult = mail.send(to, username,
+                                password, subjectTextField.getText(),
+                                mailContentTextArea.getText(), attachFiles);
+                        System.out.println("Result: " + sendEmailResult);
+                        if (sendEmailResult) {
+                            //trường hợp gửi mail thành công
+                            statusSendMailLabel.setText("STATUS: Gửi mail thành công (^_^)!");
 
-                    //xóa danh sách file đính kèm sau khi gửi xong mail
-                    attachFiles = new ArrayList<>();
-                    this.close();
-                } else {
-                    //thông báo gửi mail thất bại
-                    statusSendMailLabel.setText("STATUS: Gửi mail thất bại (-_-\")!");
+                            //xóa màn hình sau khi gửi xong mail
+                            clearComposerForm();
+                            clearAttachFiles();
+
+                            //xóa danh sách file đính kèm sau khi gửi xong mail
+                            attachFiles = new ArrayList<>();
+                            progressPane.setVisible(false);
+                            composerPane.setDisable(false);
+                            close();
+                        } else {
+                            progressPane.setVisible(false);
+                            composerPane.setDisable(false);
+                            Platform.runLater(() -> {
+                                //thông báo gửi mail thất bại
+                                statusSendMailLabel.setText("STATUS: Gửi mail thất bại (-_-\")!");
+                            });
+                        }
+                    } catch (Exception ex) {
+                        System.out.println(ex);
+                    }
                 }
-            } catch (Exception ex) {
-                System.out.println(ex);
-            }
+            }).start();
+
         });
 
         this.setOnCloseRequest((WindowEvent event) -> {
@@ -129,11 +163,14 @@ public class ComposerWindow extends Stage {
 
         recomposeButton.setOnAction((ActionEvent event) -> {
             clearComposerForm();
-            clearAttachFiles();
         });
 
         attachFileButton.setOnAction((ActionEvent event) -> {
             showFileOpened();
+        });
+
+        clearFileButton.setOnAction((ActionEvent event) -> {
+            clearAttachFiles();
         });
     }
 
@@ -192,7 +229,7 @@ public class ComposerWindow extends Stage {
     private void clearComposerForm() {
         toTextField.setText("");
         subjectTextField.setText("");
-        newMailContent.setText("");
+        mailContentTextArea.setText("");
     }
 
     private void clearAttachFiles() {

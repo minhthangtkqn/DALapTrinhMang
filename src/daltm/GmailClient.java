@@ -3,20 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-/**
- * Google Mail Folders Name
- * [[Gmail]]
- * [[Gmail]/All Mail]
- * [[Gmail]/Bin]
- * [[Gmail]/Drafts]
- * [[Gmail]/Important]
- * [[Gmail]/Sent Mail]
- * [[Gmail]/Spam]
- * [[Gmail]/Starred]
- */
 package daltm;
 
-import java.io.File;
 import model.bean.Mail;
 import java.util.*;
 import java.util.prefs.Preferences;
@@ -34,12 +22,10 @@ import javafx.stage.Stage;
 import javafx.application.Platform;
 import javafx.stage.WindowEvent;
 import javafx.beans.value.ObservableValue;
-import javafx.stage.FileChooser;
 import model.bo.CheckLoginBO;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
-import static javafx.application.Application.launch;
 import javafx.scene.input.MouseEvent;
 import model.bean.User;
 import static javafx.application.Application.launch;
@@ -62,6 +48,7 @@ public class GmailClient extends Application {
     private Stage primaryStage = new Stage();
     private Stage aboutStage = null;
     private Stage composerStage = null;
+    private Stage signatureStage = null;
 
     /**
      * Store username and password in Preference
@@ -71,8 +58,12 @@ public class GmailClient extends Application {
     /**
      * Elements in Login form
      */
+    private StackPane root = new StackPane();
     private GridPane loginPane = new GridPane();
+    private FlowPane progressPane = new FlowPane();
     private Scene loginScene;
+
+    private ProgressIndicator loading = new ProgressIndicator();
 
     private Label welcomeLabel = new Label("GMAIL CLIENT");
 
@@ -93,9 +84,10 @@ public class GmailClient extends Application {
     private Scene mailBoxScene;
 
     private MenuBar mailBoxMenuBar = new MenuBar();
-    private MenuItem composeMailItem = new MenuItem("Compose");
     private MenuItem logoutItem = new MenuItem("Logout");
     private MenuItem exitItem = new MenuItem("Exit");
+    private MenuItem composeMailItem = new MenuItem("Compose");
+    private MenuItem signatureItem = new MenuItem("Edit Signature");
     private MenuItem aboutItem = new MenuItem("About...");
 
     private VBox foldersPane = new VBox();
@@ -119,6 +111,10 @@ public class GmailClient extends Application {
      * set up elements in Login form
      */
     private void setUpLogin() {
+        progressPane.getChildren().addAll(loading);
+        progressPane.setPadding(new Insets(1000));
+        progressPane.setVisible(false);
+
         String userName = preferences.get("username", "");
         String password = preferences.get("password", "");
 
@@ -152,7 +148,10 @@ public class GmailClient extends Application {
         loginPane.add(keepSignInCheckBox, 0, 4, 2, 1);
         loginPane.add(statusLogin, 0, 5, 2, 1);
 
-        loginScene = new Scene(loginPane, 400, 300);
+        root.getChildren().addAll(loginPane, progressPane);
+
+        loginScene = new Scene(root, 400, 300);
+        loginScene.getStylesheets().add(getClass().getResource("app.css").toExternalForm());
     }
 
     /**
@@ -164,15 +163,16 @@ public class GmailClient extends Application {
         mailBoxPane.setVgap(5);
 
         //menu
-        Menu menuFile = new Menu("File");
         Menu menuOptions = new Menu("Options");
+        Menu menuEdit = new Menu("Edit");
         Menu menuHelp = new Menu("Help");
 
         //add items to menu
-        menuFile.getItems().addAll(composeMailItem, logoutItem, exitItem);
+        menuOptions.getItems().addAll(logoutItem, exitItem);
+        menuEdit.getItems().addAll(composeMailItem, signatureItem);
         menuHelp.getItems().addAll(aboutItem);
 
-        mailBoxMenuBar.getMenus().addAll(menuFile, menuOptions, menuHelp);
+        mailBoxMenuBar.getMenus().addAll(menuOptions, menuEdit, menuHelp);
         mailBoxMenuBar.prefWidthProperty().bind(primaryStage.widthProperty());
 
         //FOLDER LISTVIEW
@@ -192,6 +192,10 @@ public class GmailClient extends Application {
         mailsPane.getChildren().addAll(mailsListView);
         VBox.setVgrow(mailsListView, Priority.ALWAYS);
         mailsPane.setMinWidth(250);
+
+        //BUTTONS SET UP
+        replyMailButton.setDisable(true);
+        forwardMailButton.setDisable(true);
 
         //ADD BUTTONS TO BUTTON BAR
         mailFuncButtonPane.getChildren().addAll(newMailButton, replyMailButton, forwardMailButton);
@@ -226,6 +230,8 @@ public class GmailClient extends Application {
     private void loginFormAction() {
         signInButton.setOnAction((ActionEvent event) -> {
             signInButton.setDisable(true);
+            loginPane.setDisable(true);
+            progressPane.setVisible(true);
             login();
         });
     }
@@ -255,10 +261,16 @@ public class GmailClient extends Application {
                         preferences.putBoolean("keepSignIn", false);
                     }
                     statusLogin.setText("ĐĂNG NHẬP THÀNH CÔNG. ĐANG TẢI THÔNG TIN");
-                    Platform.runLater(() -> MailBoxGUI());
+                    Platform.runLater(() -> {
+                        loginPane.setDisable(false);
+                        progressPane.setVisible(false);
+                        MailBoxGUI();
+                    });
                 } else {
                     System.out.println("Dang nhap that bai!");
                     statusLogin.setText("ĐĂNG NHẬP THẤT BẠI!");
+                    loginPane.setDisable(false);
+                    progressPane.setVisible(false);
                     signInButton.setDisable(false);
                 }
             }
@@ -383,6 +395,7 @@ public class GmailClient extends Application {
             System.exit(0);
         });
         logoutItem.setOnAction((ActionEvent event) -> {
+            System.out.println("Bat dau dang xuat");
             preferences.putBoolean("loggedIn", false);
 
             if (!preferences.getBoolean("keepSignIn", false)) {
@@ -390,14 +403,21 @@ public class GmailClient extends Application {
             }
             statusLogin.setText("ĐĂNG XUẤT THÀNH CÔNG!");
             signInButton.setDisable(false);
-            composerStage.close();
-            LoginGUI();
+
+            if (composerStage != null) {
+                composerStage.close();
+            }
+            openLoginGUI();
+            System.out.println("Dang xuat xong");
         });
         aboutItem.setOnAction((ActionEvent event) -> {
             openAboutGUI();
         });
         composeMailItem.setOnAction((ActionEvent event) -> {
             openComposerGUI();
+        });
+        signatureItem.setOnAction((ActionEvent event) -> {
+            openSignatureGUI();
         });
         newMailButton.setOnAction((ActionEvent event) -> {
             openComposerGUI();
@@ -418,6 +438,15 @@ public class GmailClient extends Application {
             composerStage = new ComposerWindow(user.getUsername(), user.getPassword());
         }
         composerStage.show();
+    }
+
+    private void openSignatureGUI() {
+        if (signatureStage == null) {
+            signatureStage = new SignatureWindow(user.getUsername());
+        } else if (user.getUsername().compareTo(SignatureWindow.username) != 0) {
+            signatureStage = new SignatureWindow(user.getUsername());
+        }
+        signatureStage.show();
     }
 
     @Override
