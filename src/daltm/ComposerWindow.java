@@ -28,7 +28,7 @@ public class ComposerWindow extends Stage {
     public static String username;
     private String password;
 
-    private Preferences preferences = Preferences.userRoot().node(this.getClass().getName());
+    private Preferences preferences = Preferences.userRoot().node(GmailClient.class.getName());
 
     private EmailContact mail = new EmailContact();
 
@@ -106,7 +106,7 @@ public class ComposerWindow extends Stage {
 
         this.setScene(composerScene);
         this.setTitle("NEW EMAIL");
-        this.getIcons().add(new Image(getClass().getResource("mail.png").toString()));
+        this.getIcons().add(new Image(ComposerWindow.class.getResource("mail.png").toString()));
         this.setResizable(false);
     }
 
@@ -229,7 +229,8 @@ public class ComposerWindow extends Stage {
     private void clearComposerForm() {
         toTextField.setText("");
         subjectTextField.setText("");
-        mailContentTextArea.setText("");
+        mailContentTextArea.setText("\n" + preferences.get(username + "_signature", ""));
+        System.out.println("reset content done!");
     }
 
     private void clearAttachFiles() {

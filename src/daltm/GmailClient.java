@@ -53,7 +53,7 @@ public class GmailClient extends Application {
     /**
      * Store username and password in Preference
      */
-    private Preferences preferences = Preferences.userRoot().node(this.getClass().getName());
+    private Preferences preferences = Preferences.userRoot().node(GmailClient.class.getName());
 
     /**
      * Elements in Login form
@@ -98,6 +98,8 @@ public class GmailClient extends Application {
 
     private VBox mailContentPane = new VBox();
     private HBox mailFuncButtonPane = new HBox();
+    private FlowPane loadMailStatusPane = new FlowPane();
+
     private Label subjectLabel = new Label("SUBJECT: ");
     private Label senderLabel = new Label("FROM: ");
     private Label timeLabel = new Label("DATE: ");
@@ -106,6 +108,9 @@ public class GmailClient extends Application {
     private Button newMailButton = new Button("NEW");
     private Button replyMailButton = new Button("REPLY");
     private Button forwardMailButton = new Button("FORWARD");
+
+    private ProgressIndicator loadMailStatusProgress = new ProgressIndicator();
+    private Label loadMailStatusLabel = new Label("Status: ");
 
     /**
      * set up elements in Login form
@@ -216,10 +221,17 @@ public class GmailClient extends Application {
         VBox.setVgrow(mailContentTextArea, Priority.ALWAYS);
         mailContentPane.setSpacing(5);
 
+        //ADD loadMailStatus elements to FlowPane
+        loadMailStatusPane.getChildren().addAll(loadMailStatusProgress, loadMailStatusLabel);
+        loadMailStatusPane.setVisible(true);
+
+        //add panes to main pane
+        //main pane --> grid pane (6x7)
         mailBoxPane.add(mailBoxMenuBar, 0, 0, 6, 1);
         mailBoxPane.add(foldersPane, 0, 1, 1, 5);
         mailBoxPane.add(mailsPane, 1, 1, 1, 5);
         mailBoxPane.add(mailContentPane, 2, 1, 4, 5);
+        mailBoxPane.add(loadMailStatusPane, 0, 6, 6, 1);
 
         mailBoxScene = new Scene(mailBoxPane, 900, 500);
     }
@@ -328,7 +340,7 @@ public class GmailClient extends Application {
             super.updateItem(item, empty);
 
             if (item != null) {
-                from.setText(item.getFrom());
+                from.setText(item.getFrom().split(" ")[0]);
                 subject.setText(item.getSubject());
                 setGraphic(vBox);
             } else {
@@ -486,7 +498,12 @@ public class GmailClient extends Application {
         openMailBoxGUI();
         user = new User(preferences.get("username", ""), preferences.get("password", ""), true);
         //threads get list mails
+//        firstLoad();
         loadMailFromFolder("inbox");
+    }
+
+    private void firstLoad() {
+
     }
 
     private void LoginGUI() {
@@ -506,6 +523,8 @@ public class GmailClient extends Application {
     }
 
     private void loadMailFromFolder(String folderName) {
+        loadMailStatusPane.setVisible(true);
+        loadMailStatusLabel.setText("Loading mails form " + folderName + "folder.");
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -529,6 +548,7 @@ public class GmailClient extends Application {
                         senderLabel.setText("FROM:     " + firstMail.getFrom());
                         timeLabel.setText("DATE:     " + firstMail.getTime());
                         mailContentTextArea.setText(firstMail.getContent());
+                        loadMailStatusPane.setVisible(false);
                     });
 
                     //thiết kế lại giao diện cho list view

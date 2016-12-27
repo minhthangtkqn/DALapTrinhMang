@@ -26,9 +26,9 @@ public class SignatureWindow extends Stage {
 
     private final Font MEDIUM_FONT = new Font("Arial", 17);
 
-    private Preferences preferences = Preferences.userRoot().node(this.getClass().getName());
+    private Preferences preferences = Preferences.userRoot().node(GmailClient.class.getName());
 
-    private final int COMPOSER_WIDTH = 700, COMPOSER_HEIGHT = 400;
+    private final int SIGNATURE_WIDTH = 700, SIGNATURE_HEIGHT = 400;
 
     public static String username;
 
@@ -44,7 +44,7 @@ public class SignatureWindow extends Stage {
     public SignatureWindow(String account) {
         username = account;
         setUpSignatureGUI();
-        composerFormAction();
+        signatureFormAction();
     }
 
     private void setUpSignatureGUI() {
@@ -60,18 +60,21 @@ public class SignatureWindow extends Stage {
         signaturePane.setSpacing(10);
         VBox.setVgrow(signatureTextArea, Priority.ALWAYS);
 
-        signatureScene = new Scene(signaturePane, COMPOSER_WIDTH, COMPOSER_HEIGHT);
+        signatureScene = new Scene(signaturePane, SIGNATURE_WIDTH, SIGNATURE_HEIGHT);
 
         this.setScene(signatureScene);
         this.setTitle("SIGNATURE");
-        this.getIcons().add(new Image(getClass().getResource("mail.png").toString()));
+        this.getIcons().add(new Image(SignatureWindow.class.getResource("mail.png").toString()));
         this.setResizable(false);
     }
 
-    private void composerFormAction() {
+    private void signatureFormAction() {
         this.setOnCloseRequest((WindowEvent event) -> {
             preferences.put(username + "_signature", signatureTextArea.getText());
+            System.out.println(username);
+            System.out.println("Da luu: " + preferences.get(username + "_signature", ""));
         });
     }
 
 }
+//preferences.get(username + "_signature", "")
