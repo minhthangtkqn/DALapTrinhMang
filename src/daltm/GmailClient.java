@@ -234,6 +234,7 @@ public class GmailClient extends Application {
         mailBoxPane.add(loadMailStatusPane, 0, 6, 6, 1);
 
         mailBoxScene = new Scene(mailBoxPane, 900, 500);
+        mailBoxScene.getStylesheets().add(getClass().getResource("app.css").toExternalForm());
     }
 
     /**
@@ -550,14 +551,17 @@ public class GmailClient extends Application {
                         mailContentTextArea.setText(firstMail.getContent());
                         loadMailStatusPane.setVisible(false);
                     });
-
+                    
                     //thiết kế lại giao diện cho list view
-                    mailsListView.setCellFactory(new Callback<ListView<Mail>, ListCell<Mail>>() {
-                        @Override
-                        public ListCell<Mail> call(ListView<Mail> param) {
-                            return new CustomMailListView();
-                        }
+                    Platform.runLater(() -> {
+                        mailsListView.setCellFactory(new Callback<ListView<Mail>, ListCell<Mail>>() {
+                            @Override
+                            public ListCell<Mail> call(ListView<Mail> param) {
+                                return new CustomMailListView();
+                            }
+                        });
                     });
+
                 }
             }
         }).start();

@@ -24,7 +24,9 @@ import javafx.stage.*;
  */
 public class SignatureWindow extends Stage {
 
+    private final Font BIG_FONT = new Font("Arial", 20);
     private final Font MEDIUM_FONT = new Font("Arial", 17);
+    private final Font SMALL_FONT = new Font("Arial", 14);
 
     private Preferences preferences = Preferences.userRoot().node(GmailClient.class.getName());
 
@@ -54,6 +56,7 @@ public class SignatureWindow extends Stage {
         inforLabel.setTextAlignment(TextAlignment.CENTER);
 
         signatureTextArea.setText(preferences.get(username + "_signature", ""));
+        signatureTextArea.setFont(MEDIUM_FONT);
 
         signaturePane.getChildren().addAll(signatureTextArea, inforLabel);
         signaturePane.setPadding(new Insets(5));

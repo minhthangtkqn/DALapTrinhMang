@@ -15,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
 import javafx.stage.*;
 
 /**
@@ -24,6 +25,10 @@ import javafx.stage.*;
 public class ComposerWindow extends Stage {
 
     private final int COMPOSER_WIDTH = 900, COMPOSER_HEIGHT = 500;
+
+    private final Font BIG_FONT = new Font("Arial", 20);
+    private final Font MEDIUM_FONT = new Font("Arial", 17);
+    private final Font SMALL_FONT = new Font("Arial", 14);
 
     public static String username;
     private String password;
@@ -82,6 +87,7 @@ public class ComposerWindow extends Stage {
         HBox.setHgrow(subjectTextField, Priority.ALWAYS);
 
         mailContentTextArea.setText("\n" + preferences.get(username + "_signature", ""));
+        mailContentTextArea.setFont(MEDIUM_FONT);
 
         sendButton.prefWidthProperty().bind(this.widthProperty());
         recomposeButton.prefWidthProperty().bind(this.widthProperty());
