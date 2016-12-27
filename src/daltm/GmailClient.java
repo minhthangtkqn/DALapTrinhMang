@@ -43,7 +43,13 @@ public class GmailClient extends Application {
     //we use mail object to run methods send or receive mails from server
     private User user;
     private EmailContact mail = new EmailContact();
-    private ObservableList mailsList;
+    private ObservableList mailsInboxList;
+    private ObservableList mailsDraftList;
+    private ObservableList mailsImportantList;
+    private ObservableList mailsSentList;
+    private ObservableList mailsSpamList;
+    private ObservableList mailsTrashList;
+    private ObservableList mailsAllList;
 
     private Stage primaryStage = new Stage();
     private Stage aboutStage = null;
@@ -94,6 +100,7 @@ public class GmailClient extends Application {
     private ListView<String> foldersListView = new ListView();
 
     private VBox mailsPane = new VBox();
+    private Label mailFolderLabel = new Label("Folder Name");
     private ListView<Mail> mailsListView = new ListView();
 
     private VBox mailContentPane = new VBox();
@@ -194,7 +201,7 @@ public class GmailClient extends Application {
         VBox.setVgrow(foldersListView, Priority.ALWAYS);
         foldersPane.setPrefWidth(150);
         foldersPane.setMinWidth(150);
-        mailsPane.getChildren().addAll(mailsListView);
+        mailsPane.getChildren().addAll(mailFolderLabel, mailsListView);
         VBox.setVgrow(mailsListView, Priority.ALWAYS);
         mailsPane.setMinWidth(250);
 
@@ -369,27 +376,33 @@ public class GmailClient extends Application {
                 switch (foldersListView.getSelectionModel().getSelectedItem()) {
                     case "Inbox":
                         folder = "inbox";
+                        mailsListView.setItems(mailsInboxList);
                         break;
                     case "Draft":
                         folder = "[Gmail]/Drafts";
+                        mailsListView.setItems(mailsDraftList);
                         break;
                     case "Important":
                         folder = "[Gmail]/Important";
+                        mailsListView.setItems(mailsImportantList);
                         break;
                     case "Sent":
                         folder = "[Gmail]/Sent Mail";
+                        mailsListView.setItems(mailsSentList);
                         break;
                     case "Spam":
                         folder = "[Gmail]/Spam";
+                        mailsListView.setItems(mailsSpamList);
                         break;
                     case "Trash":
                         folder = "[Gmail]/Trash";
+                        mailsListView.setItems(mailsTrashList);
                         break;
                     case "All":
                         folder = "[Gmail]/All Mail";
+                        mailsListView.setItems(mailsAllList);
                         break;
                 }
-
                 loadMailFromFolder(folder);
 
 //"Inbox", "Draft", "Important", "Sent", "Spam", "Trash", "All"
@@ -484,7 +497,7 @@ public class GmailClient extends Application {
     }
 
     private void initGUI() {
-        primaryStage.setTitle("DEMO GMAIL CLIENT!");
+        primaryStage.setTitle("GMAIL CLIENT!");
         primaryStage.getIcons().add(new Image(getClass().getResource("mail.png").toString()));
         primaryStage.setOnCloseRequest((WindowEvent event) -> {
             Platform.exit();
@@ -501,10 +514,6 @@ public class GmailClient extends Application {
         //threads get list mails
 //        firstLoad();
         loadMailFromFolder("inbox");
-    }
-
-    private void firstLoad() {
-
     }
 
     private void LoginGUI() {
@@ -525,46 +534,97 @@ public class GmailClient extends Application {
 
     private void loadMailFromFolder(String folderName) {
         loadMailStatusPane.setVisible(true);
-        loadMailStatusLabel.setText("Loading mails form " + folderName + "folder.");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                //lấy mail list mail từ emailContact
-                ArrayList<Mail> getMails = mail.getMails(user.getUsername(), user.getPassword(), folderName);
-                if (getMails == null) {
-                    mailsListView.setItems(null);
-                } else {
-                    mailsList = FXCollections.observableArrayList();
-
-                    for (Mail ml : getMails) {
-                        mailsList.add(ml);
-                    }
-
-                    Platform.runLater(() -> mailsListView.setItems(mailsList));
-
-                    Platform.runLater(() -> {
-                        //mail đầu tiên trong danh sách mặc định sẽ đc hiển thị
-                        Mail firstMail = getMails.get(0);
-                        subjectLabel.setText("SUBJECT:  " + firstMail.getSubject());
-                        senderLabel.setText("FROM:     " + firstMail.getFrom());
-                        timeLabel.setText("DATE:     " + firstMail.getTime());
-                        mailContentTextArea.setText(firstMail.getContent());
-                        loadMailStatusPane.setVisible(false);
-                    });
-                    
-                    //thiết kế lại giao diện cho list view
-                    Platform.runLater(() -> {
-                        mailsListView.setCellFactory(new Callback<ListView<Mail>, ListCell<Mail>>() {
-                            @Override
-                            public ListCell<Mail> call(ListView<Mail> param) {
-                                return new CustomMailListView();
-                            }
-                        });
-                    });
-
+        loadMailStatusLabel.setText("Loading mails form [" + folderName.split("/")[folderName.split("/").length - 1] + "] folder.");
+        Thread loadMails = new Thread(() -> {
+            //lấy mail list mail từ emailContact
+            ArrayList<Mail> getMails = mail.getMails(user.getUsername(), user.getPassword(), folderName);
+            if (getMails == null) {
+                ObservableList mails = FXCollections.observableArrayList("Không có Email nào trong mục này");
+                mailsListView.setItems(mails);
+            } else {
+                switch (folderName) {
+                    case "inbox":
+                        mailsInboxList = FXCollections.observableArrayList();
+                        for (Mail ml : getMails) {
+                            mailsInboxList.add(ml);
+                        }
+                        Platform.runLater(() -> mailsListView.setItems(mailsInboxList));
+                        break;
+                    case "[Gmail]/Drafts":
+                        mailsDraftList = FXCollections.observableArrayList();
+                        for (Mail ml : getMails) {
+                            mailsDraftList.add(ml);
+                        }
+                        Platform.runLater(() -> mailsListView.setItems(mailsDraftList));
+                        break;
+                    case "[Gmail]/Important":
+                        mailsImportantList = FXCollections.observableArrayList();
+                        for (Mail ml : getMails) {
+                            mailsImportantList.add(ml);
+                        }
+                        Platform.runLater(() -> mailsListView.setItems(mailsImportantList));
+                        break;
+                    case "[Gmail]/Sent Mail":
+                        mailsSentList = FXCollections.observableArrayList();
+                        for (Mail ml : getMails) {
+                            mailsSentList.add(ml);
+                        }
+                        Platform.runLater(() -> mailsListView.setItems(mailsSentList));
+                        break;
+                    case "[Gmail]/Spam":
+                        mailsSpamList = FXCollections.observableArrayList();
+                        for (Mail ml : getMails) {
+                            mailsSpamList.add(ml);
+                        }
+                        Platform.runLater(() -> mailsListView.setItems(mailsSpamList));
+                        break;
+                    case "[Gmail]/Trash":
+                        mailsTrashList = FXCollections.observableArrayList();
+                        for (Mail ml : getMails) {
+                            mailsTrashList.add(ml);
+                        }
+                        Platform.runLater(() -> mailsListView.setItems(mailsTrashList));
+                        break;
+                    case "[Gmail]/All Mail":
+                        mailsAllList = FXCollections.observableArrayList();
+                        for (Mail ml : getMails) {
+                            mailsAllList.add(ml);
+                        }
+                        Platform.runLater(() -> mailsListView.setItems(mailsAllList));
+                        break;
                 }
+//                mailsInboxList = FXCollections.observableArrayList();
+//
+//                for (Mail ml : getMails) {
+//                    mailsInboxList.add(ml);
+//                }
+//
+//                Platform.runLater(() -> mailsListView.setItems(mailsInboxList));
+
+                Platform.runLater(() -> {
+                    //mail đầu tiên trong danh sách mặc định sẽ đc hiển thị
+                    Mail firstMail = getMails.get(0);
+                    subjectLabel.setText("SUBJECT:  " + firstMail.getSubject());
+                    senderLabel.setText("FROM:     " + firstMail.getFrom());
+                    timeLabel.setText("DATE:     " + firstMail.getTime());
+                    mailContentTextArea.setText(firstMail.getContent());
+                    loadMailStatusPane.setVisible(false);
+                });
+
+                //thiết kế lại giao diện cho list view
+                Platform.runLater(() -> {
+                    mailsListView.setCellFactory(new Callback<ListView<Mail>, ListCell<Mail>>() {
+                        @Override
+                        public ListCell<Mail> call(ListView<Mail> param) {
+                            return new CustomMailListView();
+                        }
+                    });
+                });
+
             }
-        }).start();
+        });
+        loadMails.setDaemon(true);
+        loadMails.start();
     }
 
     public static void main(String[] args) {

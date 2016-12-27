@@ -111,17 +111,14 @@ public class EmailContact {
                     System.out.println("From: " + getFrom(message));
 
                     mails.add(new Mail(message.getSubject(), message.getReceivedDate().toString(), getFrom(message), getTo(message), getMailContent(message)));
-//                    mails.add(new Mail(message.getSubject(), getFrom(message), message));
                 }
             }
 
             //close the store and folder objects
             emailFolder.close(false);
             store.close();
-        } catch (MessagingException | IOException ex) {
-            Logger.getLogger(XXXGmailClientXXX.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
-            Logger.getLogger(XXXGmailClientXXX.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Co loi xay ra: " + ex);
         }
         return mails;
     }
