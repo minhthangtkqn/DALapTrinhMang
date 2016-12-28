@@ -133,18 +133,19 @@ public class ComposerWindow extends Stage {
                                 mailContentTextArea.getText(), attachFiles);
                         System.out.println("Result: " + sendEmailResult);
                         if (sendEmailResult) {
-                            //trường hợp gửi mail thành công
-                            statusSendMailLabel.setText("STATUS: Gửi mail thành công (^_^)!");
+                            Platform.runLater(() -> {
+                                statusSendMailLabel.setText("STATUS: Gửi mail thành công (^_^)!");
+                                clearComposerForm();
+                                clearAttachFiles();
 
-                            //xóa màn hình sau khi gửi xong mail
-                            clearComposerForm();
-                            clearAttachFiles();
+                                //xóa màn hình sau khi gửi xong mail
+                                //xóa danh sách file đính kèm sau khi gửi xong mail
+                                attachFiles = new ArrayList<>();
+                                progressPane.setVisible(false);
+                                composerPane.setDisable(false);
+                                close();
+                            });
 
-                            //xóa danh sách file đính kèm sau khi gửi xong mail
-                            attachFiles = new ArrayList<>();
-                            progressPane.setVisible(false);
-                            composerPane.setDisable(false);
-                            close();
                         } else {
                             progressPane.setVisible(false);
                             composerPane.setDisable(false);

@@ -5,21 +5,12 @@
  */
 package daltm;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
+import javax.activation.*;
 import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.*;
 import model.bean.Mail;
 
 /**
@@ -28,12 +19,11 @@ import model.bean.Mail;
  */
 public class EmailContact {
 
-    Properties properties;
-    static Session session;
-    static Store store;
-    String hostGetMail = "imap.gmail.com";
-    String hostSendMail = "smtp.gmail.com";
-    static String username, password;
+    private Properties properties;
+    private static Session session;
+    private static Store store;
+    private String hostGetMail = "imap.gmail.com";
+    private String hostSendMail = "smtp.gmail.com";
 
     public EmailContact() {
         properties = new Properties();
@@ -88,14 +78,8 @@ public class EmailContact {
         }
 
         try {
-//            Folder[] fd = store.getDefaultFolder().list();
-//            for (Folder f : fd) {
-//                System.out.println("FOLDERS's NAME: " + f.getName());
-//            }
-
             Folder emailFolder = store.getFolder(folderName);
             emailFolder.open(Folder.READ_ONLY);
-//            emailFolder.open(Folder.HOLDS_MESSAGES);
 
             Message[] messages = emailFolder.getMessages();
             System.out.println("messages.length---" + messages.length);
@@ -113,7 +97,6 @@ public class EmailContact {
                     mails.add(new Mail(message.getSubject(), message.getReceivedDate().toString(), getFrom(message), getTo(message), getMailContent(message)));
                 }
             }
-
             //close the store and folder objects
             emailFolder.close(false);
             store.close();
@@ -151,16 +134,6 @@ public class EmailContact {
     private String getMailContent(Message message) throws Exception {
         String content = "";
 
-//        if (part.isMimeType("multipart/*")) {
-//            Multipart mp = (Multipart) part.getContent();
-//            int count = mp.getCount();
-//            for (int i = 0; i < count; i++) {
-//                getMailContent(mp.getBodyPart(i));
-//                if (mp.getBodyPart(i).isMimeType("text/plain")) {
-//                    return (String) mp.getBodyPart(i).getContent();
-//                }
-//            }
-//        }
         if (message.isMimeType("text/plain")) {
             content = message.getContent().toString();
         } else if (message.isMimeType("multipart/*")) {

@@ -196,6 +196,9 @@ public class GmailClient extends Application {
         mailsListView.setItems(mails);
         mailsListView.prefHeightProperty().bind(primaryStage.heightProperty());
 
+        mailFolderLabel.setFont(MEDIUM_FONT);
+        mailFolderLabel.setText("INBOX");
+
         //ADD LISTVIEWS TO PANES
         foldersPane.getChildren().addAll(foldersListView);
         VBox.setVgrow(foldersListView, Priority.ALWAYS);
@@ -324,38 +327,7 @@ public class GmailClient extends Application {
         });
     }
 
-    class CustomMailListView extends ListCell<Mail> {
-
-        private Text from;
-        private Text subject;
-        private VBox vBox;
-
-        public CustomMailListView() {
-            super();
-
-            from = new Text();
-            from.setFont(BIG_FONT);
-            subject = new Text();
-            subject.setFont(MEDIUM_FONT);
-            subject.setFill(Color.GRAY);
-
-            vBox = new VBox();
-            vBox.getChildren().addAll(from, subject);
-        }
-
-        @Override
-        protected void updateItem(Mail item, boolean empty) {
-            super.updateItem(item, empty);
-
-            if (item != null) {
-                from.setText(item.getFrom().split(" ")[0]);
-                subject.setText(item.getSubject());
-                setGraphic(vBox);
-            } else {
-                setGraphic(null);
-            }
-        }
-    }
+    
 
     private void mailBoxFormAction() {
         mailsListView.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Mail> observable, Mail oldValue, Mail newValue) -> {
@@ -403,6 +375,7 @@ public class GmailClient extends Application {
                         mailsListView.setItems(mailsAllList);
                         break;
                 }
+                mailFolderLabel.setText(foldersListView.getSelectionModel().getSelectedItem().toUpperCase());
                 loadMailFromFolder(folder);
 
 //"Inbox", "Draft", "Important", "Sent", "Spam", "Trash", "All"
@@ -512,7 +485,6 @@ public class GmailClient extends Application {
         openMailBoxGUI();
         user = new User(preferences.get("username", ""), preferences.get("password", ""), true);
         //threads get list mails
-//        firstLoad();
         loadMailFromFolder("inbox");
     }
 
@@ -539,9 +511,19 @@ public class GmailClient extends Application {
             //lấy mail list mail từ emailContact
             ArrayList<Mail> getMails = mail.getMails(user.getUsername(), user.getPassword(), folderName);
             if (getMails == null) {
+                System.out.println("Khong co email");
                 ObservableList mails = FXCollections.observableArrayList("Không có Email nào trong mục này");
-                mailsListView.setItems(mails);
+                Platform.runLater(() -> {
+                    //mail đầu tiên trong danh sách mặc định sẽ đc hiển thị
+                    mailsListView.setItems(null);
+                    subjectLabel.setText("SUBJECT:  ");
+                    senderLabel.setText("FROM:     ");
+                    timeLabel.setText("DATE:     ");
+                    mailContentTextArea.setText("");
+                    loadMailStatusPane.setVisible(false);
+                });
             } else {
+                System.out.println("co email");
                 switch (folderName) {
                     case "inbox":
                         mailsInboxList = FXCollections.observableArrayList();
@@ -593,13 +575,6 @@ public class GmailClient extends Application {
                         Platform.runLater(() -> mailsListView.setItems(mailsAllList));
                         break;
                 }
-//                mailsInboxList = FXCollections.observableArrayList();
-//
-//                for (Mail ml : getMails) {
-//                    mailsInboxList.add(ml);
-//                }
-//
-//                Platform.runLater(() -> mailsListView.setItems(mailsInboxList));
 
                 Platform.runLater(() -> {
                     //mail đầu tiên trong danh sách mặc định sẽ đc hiển thị

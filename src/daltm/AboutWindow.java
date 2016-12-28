@@ -22,27 +22,27 @@ import javafx.stage.Stage;
  */
 public class AboutWindow {
 
-    Stage aboutStage = new Stage();
-    Scene aboutScene;
+    private Stage aboutStage = new Stage();
+    private Scene aboutScene;
 
-    VBox aboutPane = new VBox();
+    private VBox aboutPane = new VBox();
 
-    ImageView authorImageView = new ImageView();
+    private ImageView authorImageView = new ImageView();
 
-    HBox authorPane = new HBox();
-    VBox authorInfoPane = new VBox();
-    Label authorNameLabel = new Label();
-    Label authorAddressLabel = new Label();
-    Label authorDescriptionLabel = new Label();
+    private HBox authorPane = new HBox();
+    private VBox authorInfoPane = new VBox();
+    private Label authorNameLabel = new Label();
+    private Label authorAddressLabel = new Label();
+    private Label authorDescriptionLabel = new Label();
 
-    VBox softwarePane = new VBox();
-    Label softwareNameLabel = new Label();
-    Label softwareVersionLabel = new Label();
-    Label softwareDescriptionLabel = new Label();
-    Button closeAboutButton = new Button("CLOSE");
+    private VBox softwarePane = new VBox();
+    private Label softwareNameLabel = new Label();
+    private Label softwareVersionLabel = new Label();
+    private Label softwareDescriptionLabel = new Label();
+    private Button closeAboutButton = new Button("CLOSE");
 
-    final Font BIG_FONT = new Font("Arial", 20);
-    final Font MEDIUM_FONT = new Font("Arial", 17);
+    private final Font BIG_FONT = new Font("Arial", 20);
+    private final Font MEDIUM_FONT = new Font("Arial", 17);
 
     public Stage initAboutWindow() {
         setUpAboutWindow();
@@ -89,6 +89,5 @@ public class AboutWindow {
         });
 
     }
-
 
 }
