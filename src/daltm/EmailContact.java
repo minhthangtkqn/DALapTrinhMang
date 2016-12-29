@@ -101,7 +101,7 @@ public class EmailContact {
             emailFolder.close(false);
             store.close();
         } catch (Exception ex) {
-            System.out.println("Co loi xay ra: " + ex);
+            System.out.println("Co loi o ham getMails: " + ex);
         }
         return mails;
     }

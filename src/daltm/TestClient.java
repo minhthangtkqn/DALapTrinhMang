@@ -41,7 +41,7 @@ public class TestClient extends Application {
     private final Font SMALL_FONT = new Font("Arial", 14);
 
     private final String INBOX_FOLDER_ID = "inbox", ALL_FOLDER_ID = "[Gmail]/All Mail",
-            TRASH_FOLDER_ID = "[Gmail]/Bin", DRAFTS_FOLDER_ID = "[Gmail]/Drafts",
+            TRASH_FOLDER_ID = "[Gmail]/Trash", DRAFTS_FOLDER_ID = "[Gmail]/Drafts",
             IMPORTANT_FOLDER_ID = "[Gmail]/Important", SENT_FOLDER_ID = "[Gmail]/Sent Mail",
             SPAM_FOLDER_ID = "[Gmail]/Spam", STARRED_FOLDER_ID = "[Gmail]/Starred";
 // * [[Gmail]/All Mail]
@@ -244,7 +244,9 @@ public class TestClient extends Application {
 
         //ADD loadMailStatus elements to FlowPane
         loadMailStatusPane.getChildren().addAll(loadMailStatusProgress, loadMailStatusLabel);
-        loadMailStatusPane.setVisible(false);
+//        loadMailStatusPane.setVisible(false);
+        loadMailStatusProgress.setVisible(false);
+        loadMailStatusLabel.setFont(MEDIUM_FONT);
 
         //add panes to main pane
         //main pane --> grid pane (6x7)
@@ -356,31 +358,31 @@ public class TestClient extends Application {
 
                 switch (foldersListView.getSelectionModel().getSelectedItem()) {
                     case "Inbox":
-                        folder = "inbox";
+                        folder = INBOX_FOLDER_ID;
                         mailsListView.setItems(mailsInboxList);
                         break;
                     case "Draft":
-                        folder = "[Gmail]/Drafts";
+                        folder = DRAFTS_FOLDER_ID;
                         mailsListView.setItems(mailsDraftList);
                         break;
                     case "Important":
-                        folder = "[Gmail]/Important";
+                        folder = IMPORTANT_FOLDER_ID;
                         mailsListView.setItems(mailsImportantList);
                         break;
                     case "Sent":
-                        folder = "[Gmail]/Sent Mail";
+                        folder = SENT_FOLDER_ID;
                         mailsListView.setItems(mailsSentList);
                         break;
                     case "Spam":
-                        folder = "[Gmail]/Spam";
+                        folder = SPAM_FOLDER_ID;
                         mailsListView.setItems(mailsSpamList);
                         break;
                     case "Trash":
-                        folder = "[Gmail]/Trash";
+                        folder = TRASH_FOLDER_ID;
                         mailsListView.setItems(mailsTrashList);
                         break;
                     case "All":
-                        folder = "[Gmail]/All Mail";
+                        folder = ALL_FOLDER_ID;
                         mailsListView.setItems(mailsAllList);
                         break;
                 }
@@ -388,18 +390,28 @@ public class TestClient extends Application {
                 mailFolderLabel.setText(foldersListView.getSelectionModel().getSelectedItem().toUpperCase());
                 System.out.println("Chuan bi load mail tu thu muc :" + folder);
 
-                loadMailStatusPane.setVisible(true);
+//                loadMailStatusPane.setVisible(true);
+                loadMailStatusProgress.setVisible(true);
                 loadMailStatusLabel.setText("Loading mails form [" + folder.split("/")[folder.split("/").length - 1] + "] folder.");
 
                 new Thread(() -> {
-                    loadMailsIntoObservableList(tmpFolderString);
-                    Platform.runLater(() -> {
-                        updateMailsListView(tmpFolderString);
+                    try {
+                        loadMailsIntoObservableList(tmpFolderString);
                         Platform.runLater(() -> {
-                            loadMailStatusPane.setVisible(false);
+                            updateMailsListView(tmpFolderString);
+                            Platform.runLater(() -> {
+//                                loadMailStatusPane.setVisible(false);
+                                loadMailStatusProgress.setVisible(false);
+                            });
                         });
-                    });
+                    } catch (Exception ex) {
+                        System.out.println("Loi o qua trinh click: " + ex);
+//                    loadMailStatusPane.setVisible(false);
+                        loadMailStatusProgress.setVisible(false);
+                        loadMailStatusLabel.setText("CO LOI TRONG QUA TRINH LOAD MAIL: " + ex);
+                    }
                 }).start();
+
             }
         });
 
@@ -499,7 +511,8 @@ public class TestClient extends Application {
         user = new User(preferences.get("username", ""), preferences.get("password", ""), true);
 
         //threads lay mail tu thu muc inbox
-        loadMailStatusPane.setVisible(true);
+//        loadMailStatusPane.setVisible(true);
+        loadMailStatusProgress.setVisible(true);
         loadMailStatusLabel.setText("Loading mails form [" + INBOX_FOLDER_ID.split("/")[INBOX_FOLDER_ID.split("/").length - 1] + "] folder.");
 
         new Thread(() -> {
@@ -507,7 +520,8 @@ public class TestClient extends Application {
             Platform.runLater(() -> {
                 updateMailsListView(INBOX_FOLDER_ID);
                 Platform.runLater(() -> {
-                    loadMailStatusPane.setVisible(false);
+//                    loadMailStatusPane.setVisible(false);
+                    loadMailStatusProgress.setVisible(false);
                 });
             });
         }).start();
@@ -581,8 +595,10 @@ public class TestClient extends Application {
                 break;
             case TRASH_FOLDER_ID:
                 if (getMails == null) {
+                    System.out.println("Trash ko co mail");
                     mailsTrashList = null;
                 } else {
+                    System.out.println("Trash co mail");
                     mailsTrashList = FXCollections.observableArrayList();
                     for (Mail ml : getMails) {
                         mailsTrashList.add(ml);
@@ -612,24 +628,31 @@ public class TestClient extends Application {
     private void updateMailsListView(String folderName) {
         switch (folderName) {
             case INBOX_FOLDER_ID:
+                mailFolderLabel.setText("INBOX");
                 checkListMailsAndUpdate(mailsInboxList);
                 break;
             case DRAFTS_FOLDER_ID:
+                mailFolderLabel.setText("DRAFT");
                 checkListMailsAndUpdate(mailsDraftList);
                 break;
             case IMPORTANT_FOLDER_ID:
+                mailFolderLabel.setText("IMPORTANT");
                 checkListMailsAndUpdate(mailsImportantList);
                 break;
             case SENT_FOLDER_ID:
+                mailFolderLabel.setText("SENT");
                 checkListMailsAndUpdate(mailsSentList);
                 break;
             case SPAM_FOLDER_ID:
+                mailFolderLabel.setText("SPAM");
                 checkListMailsAndUpdate(mailsSpamList);
                 break;
             case TRASH_FOLDER_ID:
+                mailFolderLabel.setText("TRASH");
                 checkListMailsAndUpdate(mailsTrashList);
                 break;
             case ALL_FOLDER_ID:
+                mailFolderLabel.setText("ALL");
                 checkListMailsAndUpdate(mailsAllList);
                 break;
         }
@@ -646,108 +669,12 @@ public class TestClient extends Application {
         mailsListView.setItems(mailsList);
         //mail đầu tiên trong danh sách mặc định sẽ đc hiển thị
         if (mailsList == null) {
+            loadMailStatusLabel.setText("KHÔNG CÓ EMAIL NÀO TRONG THƯ MỤC NÀY");
             updateMailsLabelInfo(new Mail("", "", "", "", ""));
         } else {
+            loadMailStatusLabel.setText("CÓ " + mailsList.size() + " EMAIL TRONG THƯ MỤC NÀY!");
             updateMailsLabelInfo(mailsList.get(0));
         }
-    }
-
-    private void loadMailFromFolder(String folderName) {
-        loadMailStatusPane.setVisible(true);
-        loadMailStatusLabel.setText("Loading mails form [" + folderName.split("/")[folderName.split("/").length - 1] + "] folder.");
-        Thread loadMails = new Thread(() -> {
-            //lấy mail list mail từ emailContact
-            ArrayList<Mail> getMails = mail.getMails(user.getUsername(), user.getPassword(), folderName);
-            if (getMails == null) {
-                System.out.println("Khong co email");
-                ObservableList mails = FXCollections.observableArrayList("Không có Email nào trong mục này");
-                Platform.runLater(() -> {
-                    //mail đầu tiên trong danh sách mặc định sẽ đc hiển thị
-                    mailsListView.setItems(null);
-                    subjectLabel.setText("SUBJECT:  ");
-                    senderLabel.setText("FROM:     ");
-                    timeLabel.setText("DATE:     ");
-                    mailContentTextArea.setText("");
-                    loadMailStatusPane.setVisible(false);
-                });
-            } else {
-                System.out.println("co email");
-                switch (folderName) {
-                    case "inbox":
-                        mailsInboxList = FXCollections.observableArrayList();
-                        for (Mail ml : getMails) {
-                            mailsInboxList.add(ml);
-                        }
-                        Platform.runLater(() -> mailsListView.setItems(mailsInboxList));
-                        break;
-                    case "[Gmail]/Drafts":
-                        mailsDraftList = FXCollections.observableArrayList();
-                        for (Mail ml : getMails) {
-                            mailsDraftList.add(ml);
-                        }
-                        Platform.runLater(() -> mailsListView.setItems(mailsDraftList));
-                        break;
-                    case "[Gmail]/Important":
-                        mailsImportantList = FXCollections.observableArrayList();
-                        for (Mail ml : getMails) {
-                            mailsImportantList.add(ml);
-                        }
-                        Platform.runLater(() -> mailsListView.setItems(mailsImportantList));
-                        break;
-                    case "[Gmail]/Sent Mail":
-                        mailsSentList = FXCollections.observableArrayList();
-                        for (Mail ml : getMails) {
-                            mailsSentList.add(ml);
-                        }
-                        Platform.runLater(() -> mailsListView.setItems(mailsSentList));
-                        break;
-                    case "[Gmail]/Spam":
-                        mailsSpamList = FXCollections.observableArrayList();
-                        for (Mail ml : getMails) {
-                            mailsSpamList.add(ml);
-                        }
-                        Platform.runLater(() -> mailsListView.setItems(mailsSpamList));
-                        break;
-                    case "[Gmail]/Trash":
-                        mailsTrashList = FXCollections.observableArrayList();
-                        for (Mail ml : getMails) {
-                            mailsTrashList.add(ml);
-                        }
-                        Platform.runLater(() -> mailsListView.setItems(mailsTrashList));
-                        break;
-                    case "[Gmail]/All Mail":
-                        mailsAllList = FXCollections.observableArrayList();
-                        for (Mail ml : getMails) {
-                            mailsAllList.add(ml);
-                        }
-                        Platform.runLater(() -> mailsListView.setItems(mailsAllList));
-                        break;
-                }
-
-                Platform.runLater(() -> {
-                    //mail đầu tiên trong danh sách mặc định sẽ đc hiển thị
-                    Mail firstMail = getMails.get(0);
-                    subjectLabel.setText("SUBJECT:  " + firstMail.getSubject());
-                    senderLabel.setText("FROM:     " + firstMail.getFrom());
-                    timeLabel.setText("DATE:     " + firstMail.getTime());
-                    mailContentTextArea.setText(firstMail.getContent());
-                    loadMailStatusPane.setVisible(false);
-                });
-
-                //thiết kế lại giao diện cho list view
-                Platform.runLater(() -> {
-                    mailsListView.setCellFactory(new Callback<ListView<Mail>, ListCell<Mail>>() {
-                        @Override
-                        public ListCell<Mail> call(ListView<Mail> param) {
-                            return new CustomMailListView();
-                        }
-                    });
-                });
-
-            }
-        });
-        loadMails.setDaemon(true);
-        loadMails.start();
     }
 
     public static void main(String[] args) {
