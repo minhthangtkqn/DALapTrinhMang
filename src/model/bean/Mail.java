@@ -28,9 +28,15 @@ public class Mail {
     }
 
     public Mail(String subject, String time, String from, String to, String content) {
+
+        if (from.contains("UTF-8")) {
+            this.from = from.substring(from.indexOf("<") + 1, from.indexOf(">"));
+        } else {
+            this.from = from;
+        }
+
         this.subject = subject;
         this.time = time;
-        this.from = from;
         this.to = to;
         this.content = content;
     }
