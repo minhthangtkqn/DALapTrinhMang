@@ -395,7 +395,7 @@ public class GmailClient extends Application {
                 loadMailStatusProgress.setVisible(true);
                 loadMailStatusLabel.setText("Loading mails form [" + folder.split("/")[folder.split("/").length - 1] + "] folder.");
 
-                new Thread(() -> {
+                Thread getMail = new Thread(() -> {
                     try {
                         loadMailsIntoObservableList(tmpFolderString);
                         Platform.runLater(() -> {
@@ -411,7 +411,9 @@ public class GmailClient extends Application {
                         loadMailStatusProgress.setVisible(false);
                         loadMailStatusLabel.setText("CO LOI TRONG QUA TRINH LOAD MAIL: " + ex);
                     }
-                }).start();
+                });
+                getMail.setDaemon(true);
+                getMail.start();
 
             }
         });
@@ -512,20 +514,26 @@ public class GmailClient extends Application {
         user = new User(preferences.get("username", ""), preferences.get("password", ""), true);
 
         //threads lay mail tu thu muc inbox
-//        loadMailStatusPane.setVisible(true);
         loadMailStatusProgress.setVisible(true);
         loadMailStatusLabel.setText("Loading mails form [" + INBOX_FOLDER_ID.split("/")[INBOX_FOLDER_ID.split("/").length - 1] + "] folder.");
 
-        new Thread(() -> {
-            loadMailsIntoObservableList(INBOX_FOLDER_ID);
-            Platform.runLater(() -> {
-                updateMailsListView(INBOX_FOLDER_ID);
+        Thread firstLoadMail = new Thread(() -> {
+            try {
+                loadMailsIntoObservableList(INBOX_FOLDER_ID);
                 Platform.runLater(() -> {
-//                    loadMailStatusPane.setVisible(false);
-                    loadMailStatusProgress.setVisible(false);
+                    updateMailsListView(INBOX_FOLDER_ID);
+                    Platform.runLater(() -> {
+                        loadMailStatusProgress.setVisible(false);
+                    });
                 });
-            });
-        }).start();
+            } catch (Exception e) {
+                System.out.println("Co loi khi lan dau load mail: " + e);
+                loadMailStatusProgress.setVisible(false);
+                loadMailStatusLabel.setText("Co loi khi load mail tu Inbox");
+            }
+        });
+        firstLoadMail.setDaemon(true);
+        firstLoadMail.start();
     }
 
     private void openLoginGUI() {

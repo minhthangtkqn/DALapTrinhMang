@@ -80,7 +80,10 @@ public class ComposerWindow extends Stage {
         progressPane.setVisible(false);
 
         toLabel.setPrefWidth(80);
+        toTextField.setPromptText("user001@gmail.com , user002@gmail.com");
+        
         subjectLabel.setPrefWidth(80);
+
         toPane.getChildren().addAll(toLabel, toTextField);
         subjectPane.getChildren().addAll(subjectLabel, subjectTextField);
         HBox.setHgrow(toTextField, Priority.ALWAYS);
