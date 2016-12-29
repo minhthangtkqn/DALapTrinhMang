@@ -54,7 +54,7 @@ public class AboutWindow {
 
         authorNameLabel.setText("HOÀNG MINH THẮNG");
         authorNameLabel.setFont(BIG_FONT);
-        authorAddressLabel.setText("13TCLC - BÁCH KHOA ĐÀ NẴNG");
+        authorAddressLabel.setText("13TCLC - BÁCH KHOA ĐÀ NẴNG\nMSSS: 102130217");
         authorDescriptionLabel.setText("Life is not fair, get used to it!");
 
         softwareNameLabel.setText("FAKE GMAIL CLIENT");
